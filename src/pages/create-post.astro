@@ -1,0 +1,12 @@
+---
+/**
+ * Create Post Page - REDIRECT
+ * This file redirects to the proper dashboard create-post page
+ * The full implementation is at /dashboard/create-post.astro
+ */
+
+export const prerender = false;
+
+// Redirect to the correct create-post page in dashboard
+return Astro.redirect('/dashboard/create-post');
+---

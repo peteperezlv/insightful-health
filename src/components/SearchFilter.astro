@@ -1,0 +1,251 @@
+---
+/**
+ * Search and Filter Component for Admin Pages
+ * Provides search, filters, and sorting controls
+ */
+
+export interface FilterOption {
+  label: string;
+  value: string;
+}
+
+export interface Props {
+  searchPlaceholder?: string;
+  sortOptions?: FilterOption[];
+  filterGroups?: {
+    label: string;
+    name: string;
+    options: FilterOption[];
+  }[];
+  currentSearch?: string;
+  currentSort?: string;
+  currentFilters?: Record<string, string>;
+  showBulkActions?: boolean;
+  bulkActions?: FilterOption[];
+  selectedCount?: number;
+}
+
+const {
+  searchPlaceholder = 'Search...',
+  sortOptions = [],
+  filterGroups = [],
+  currentSearch = '',
+  currentSort = '',
+  currentFilters = {},
+  showBulkActions = false,
+  bulkActions = [],
+  selectedCount = 0,
+} = Astro.props;
+---
+
+<div class="search-filter-container">
+  <!-- Search Bar -->
+  <div class="search-section">
+    <form method="get" action="" class="search-form">
+      <div class="search-input-group">
+        <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          type="search"
+          name="search"
+          value={currentSearch}
+          placeholder={searchPlaceholder}
+          class="search-input"
+        />
+        <button type="submit" class="search-button"> Search </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filters and Sort -->
+  <div class="filters-section">
+    <form method="get" action="" class="filters-form" id="filters-form">
+      <!-- Preserve search query -->
+      {currentSearch && <input type="hidden" name="search" value={currentSearch} />}
+
+      <!-- Sort Dropdown -->
+      {sortOptions.length > 0 && (
+        <div class="filter-group">
+          <label for="sort" class="filter-label">Sort by:</label>
+          <select
+            name="sort"
+            id="sort"
+            class="filter-select"
+            onchange="document.getElementById('filters-form').submit()"
+          >
+            <option value="">Default</option>
+            {sortOptions.map((option) => (
+              <option value={option.value} selected={currentSort === option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <!-- Filter Groups -->
+      {filterGroups.map((group) => (
+        <div class="filter-group">
+          <label for={group.name} class="filter-label">
+            {group.label}:
+          </label>
+          <select
+            name={group.name}
+            id={group.name}
+            class="filter-select"
+            onchange="document.getElementById('filters-form').submit()"
+          >
+            <option value="">All</option>
+            {group.options.map((option) => (
+              <option
+                value={option.value}
+                selected={currentFilters[group.name] === option.value}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
+
+      <!-- Clear Filters -->
+      {(currentSearch || currentSort || Object.keys(currentFilters).length > 0) && (
+        <a href={Astro.url.pathname} class="clear-filters-button"> Clear All </a>
+      )}
+    </form>
+  </div>
+
+  <!-- Bulk Actions -->
+  {showBulkActions && bulkActions.length > 0 && (
+    <div class="bulk-actions-section" id="bulk-actions" style="display: none;">
+      <div class="bulk-actions-content">
+        <span class="bulk-selected-count">
+          <span id="selected-count">{selectedCount}</span> selected
+        </span>
+        <select id="bulk-action-select" class="bulk-action-select">
+          <option value="">Bulk Actions</option>
+          {bulkActions.map((action) => (
+            <option value={action.value}>{action.label}</option>
+          ))}
+        </select>
+        <button type="button" id="apply-bulk-action" class="bulk-action-button">
+          Apply
+        </button>
+        <button type="button" id="cancel-bulk-selection" class="bulk-cancel-button">
+          Cancel
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  .search-filter-container {
+    @apply bg-white border-b border-gray-200 sticky top-0 z-10;
+  }
+
+  .search-section {
+    @apply p-4 border-b border-gray-200;
+  }
+
+  .search-form {
+    @apply max-w-2xl mx-auto;
+  }
+
+  .search-input-group {
+    @apply relative flex items-center gap-2;
+  }
+
+  .search-icon {
+    @apply absolute left-3 w-5 h-5 text-gray-400 pointer-events-none;
+  }
+
+  .search-input {
+    @apply flex-1 pl-10 pr-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent;
+  }
+
+  .search-button {
+    @apply px-4 py-2 bg-emerald-600 text-white rounded-r-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors font-medium;
+  }
+
+  .filters-section {
+    @apply p-4;
+  }
+
+  .filters-form {
+    @apply flex flex-wrap items-center gap-4;
+  }
+
+  .filter-group {
+    @apply flex items-center gap-2;
+  }
+
+  .filter-label {
+    @apply text-sm font-medium text-gray-700;
+  }
+
+  .filter-select {
+    @apply px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm;
+  }
+
+  .clear-filters-button {
+    @apply px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors;
+  }
+
+  .bulk-actions-section {
+    @apply bg-emerald-50 border-t border-emerald-200 p-4;
+  }
+
+  .bulk-actions-content {
+    @apply flex items-center gap-4;
+  }
+
+  .bulk-selected-count {
+    @apply text-sm font-medium text-emerald-900;
+  }
+
+  .bulk-action-select {
+    @apply px-3 py-2 border border-emerald-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white;
+  }
+
+  .bulk-action-button {
+    @apply px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors font-medium text-sm;
+  }
+
+  .bulk-cancel-button {
+    @apply px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors;
+  }
+</style>
+
+<script>
+  // Show/hide bulk actions when items are selected
+  function updateBulkActions() {
+    const checkboxes = document.querySelectorAll<HTMLInputElement>('.item-checkbox:checked');
+    const bulkActionsSection = document.getElementById('bulk-actions');
+    const selectedCountEl = document.getElementById('selected-count');
+
+    if (bulkActionsSection && selectedCountEl) {
+      const count = checkboxes.length;
+      selectedCountEl.textContent = count.toString();
+      bulkActionsSection.style.display = count > 0 ? 'block' : 'none';
+    }
+  }
+
+  // Cancel bulk selection
+  document.getElementById('cancel-bulk-selection')?.addEventListener('click', () => {
+    const checkboxes = document.querySelectorAll<HTMLInputElement>('.item-checkbox');
+    checkboxes.forEach((cb) => (cb.checked = false));
+    const selectAll = document.getElementById('select-all') as HTMLInputElement;
+    if (selectAll) selectAll.checked = false;
+    updateBulkActions();
+  });
+
+  // Export for use in other scripts
+  (window as any).updateBulkActions = updateBulkActions;
+</script>

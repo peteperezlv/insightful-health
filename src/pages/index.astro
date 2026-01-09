@@ -1,0 +1,237 @@
+---
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import { listPosts, getCategories } from '../lib/posts';
+import { getPocketBase } from '../lib/pocketbase';
+import FeaturedPostCard from '../components/FeaturedPostCard.astro';
+import RecentPostCard from '../components/RecentPostCard.astro';
+import CategoryPreview from '../components/CategoryPreview.astro';
+import NewsletterForm from '../components/NewsletterForm.astro';
+
+// Fetch featured posts
+let featuredPosts: any[] = [];
+let recentPosts: any[] = [];
+let categories: any[] = [];
+
+try {
+  const featuredResult = await listPosts({ 
+    page: 1, 
+    perPage: 4, 
+    status: 'published',
+    isFeatured: true,
+    sort: '-publishedAt'
+  });
+  featuredPosts = featuredResult.success ? featuredResult.posts || [] : [];
+} catch (error) {
+  console.error('Failed to load featured posts:', error);
+}
+
+try {
+  const recentResult = await listPosts({ 
+    page: 1, 
+    perPage: 5, 
+    status: 'published',
+    sort: '-publishedAt'
+  });
+  recentPosts = recentResult.success ? recentResult.posts || [] : [];
+} catch (error) {
+  console.error('Failed to load recent posts:', error);
+}
+
+try {
+  const allCategories = await getCategories();
+  
+  // Get post counts for each category
+  const pb = getPocketBase();
+  const categoriesWithCounts = await Promise.all(
+    allCategories.map(async (cat) => {
+      try {
+        const posts = await pb.collection('posts').getList(1, 1, {
+          filter: `categoryId = "${cat.id}" && status = "published"`,
+        });
+        return { ...cat, postCount: posts.totalItems };
+      } catch {
+        return { ...cat, postCount: 0 };
+      }
+    })
+  );
+  
+  // Sort by post count and take top 6
+  categories = categoriesWithCounts
+    .sort((a, b) => (b.postCount || 0) - (a.postCount || 0))
+    .slice(0, 6);
+} catch (error) {
+  console.error('Failed to load categories:', error);
+}
+
+// SEO structured data
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Insightful Health',
+  description: 'Public health insights, data analytics, and community health discussions',
+  url: Astro.site?.toString() || 'https://insightfulhealth.com',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Insightful Health',
+    logo: {
+      '@type': 'ImageObject',
+      url: `${Astro.site?.toString() || 'https://insightfulhealth.com'}/logo.png`
+    }
+  },
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${Astro.site?.toString() || 'https://insightfulhealth.com'}/search?q={search_term_string}`,
+    'query-input': 'required name=search_term_string'
+  }
+};
+---
+
+<Layout
+  title="Insightful Health - Public Health Insights & Data Analytics"
+  description="Explore data analytics, health trends, and community health discussions. Evidence-based insights for public health professionals and enthusiasts."
+>
+  <!-- Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <div class="min-h-screen">
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-emerald-50 to-teal-50 py-16 md:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-4xl mx-auto">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+            Public Health Insights
+          </h1>
+          <p class="text-xl md:text-2xl text-gray-700 mb-8">
+            Evidence-based insights, data analytics, and community discussions for better health outcomes.
+          </p>
+          
+          <!-- Search Bar -->
+          <div class="max-w-2xl mx-auto mb-8">
+            <form action="/search" method="GET" class="relative">
+              <input
+                type="search"
+                name="q"
+                placeholder="Search health topics, articles..."
+                class="w-full px-6 py-4 pr-12 text-lg border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent shadow-lg"
+                aria-label="Search articles"
+              />
+              <button
+                type="submit"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                aria-label="Search"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </form>
+          </div>
+          
+          <!-- CTA Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/posts"
+              class="inline-flex items-center justify-center px-8 py-4 bg-emerald-600 text-white font-semibold text-lg rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-lg transition-all hover:shadow-xl"
+            >
+              Browse Posts
+              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+            <a
+              href="/categories"
+              class="inline-flex items-center justify-center px-8 py-4 bg-white text-emerald-600 font-semibold text-lg rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 border-2 border-emerald-600 shadow-lg transition-all hover:shadow-xl"
+            >
+              Explore Topics
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <!-- Featured Posts Section -->
+      <section class="mb-16">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-3xl font-bold text-gray-900">Featured Posts</h2>
+          {featuredPosts.length > 0 && (
+            <a href="/posts?featured=true" class="text-emerald-600 hover:text-emerald-700 font-medium">
+              View all →
+            </a>
+          )}
+        </div>
+        
+        {featuredPosts.length === 0 ? (
+          <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            </svg>
+            <p class="text-gray-500 text-lg">No featured posts available yet.</p>
+            <p class="text-gray-400 mt-2">Check back soon for our latest insights!</p>
+          </div>
+        ) : (
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {featuredPosts.map((post) => (
+              <FeaturedPostCard post={post} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- Newsletter CTA -->
+      <section class="mb-16">
+        <NewsletterForm variant="default" />
+      </section>
+
+      <!-- Recent Posts Section -->
+      <section class="mb-16">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-3xl font-bold text-gray-900">Recent Posts</h2>
+          {recentPosts.length > 0 && (
+            <a href="/posts" class="text-emerald-600 hover:text-emerald-700 font-medium">
+              View all →
+            </a>
+          )}
+        </div>
+        
+        {recentPosts.length === 0 ? (
+          <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-gray-500 text-lg">No recent posts available yet.</p>
+            <p class="text-gray-400 mt-2">Be the first to publish!</p>
+          </div>
+        ) : (
+          <div class="space-y-2">
+            {recentPosts.map((post) => (
+              <RecentPostCard post={post} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- Categories Preview -->
+      {categories.length > 0 && (
+        <section class="mb-16">
+          <CategoryPreview categories={categories} maxDisplay={6} />
+        </section>
+      )}
+
+      <!-- Bottom Newsletter CTA (if not many categories) -->
+      {categories.length === 0 && (
+        <section class="mb-16">
+          <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 md:p-12 text-white text-center">
+            <h2 class="text-3xl font-bold mb-4">Join Our Community</h2>
+            <p class="text-emerald-50 mb-8 text-lg max-w-2xl mx-auto">
+              Get weekly insights on public health, data analytics, and evidence-based practices delivered to your inbox.
+            </p>
+            <NewsletterForm variant="footer" />
+          </div>
+        </section>
+      )}
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,89 @@
+---
+/**
+ * 403 Forbidden Page
+ * Shown when user tries to access protected resource without permission
+ */
+
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+
+const user = Astro.locals.user;
+---
+
+<Layout title="403 - Forbidden">
+  <div
+    class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+  >
+    <div class="max-w-md w-full text-center">
+      <div class="mb-8">
+        <div
+          class="mx-auto w-24 h-24 bg-red-100 rounded-full flex items-center justify-center"
+        >
+          <svg
+            class="w-12 h-12 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            ></path>
+          </svg>
+        </div>
+      </div>
+
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">403</h1>
+      <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+        Access Forbidden
+      </h2>
+
+      <p class="text-gray-600 mb-8">
+        {
+          user
+            ? "You don't have permission to access this page. Contact an administrator if you believe this is an error."
+            : 'You need to be logged in with appropriate permissions to access this page.'
+        }
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        {
+          user ? (
+            <>
+              <a
+                href="/dashboard"
+                class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+              >
+                Go to Dashboard
+              </a>
+              <a
+                href="/"
+                class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+              >
+                Go Home
+              </a>
+            </>
+          ) : (
+            <>
+              <a
+                href="/auth/login"
+                class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+              >
+                Login
+              </a>
+              <a
+                href="/"
+                class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+              >
+                Go Home
+              </a>
+            </>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</Layout>

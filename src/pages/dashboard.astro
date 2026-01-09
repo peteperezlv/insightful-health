@@ -1,0 +1,235 @@
+---
+/**
+ * User Dashboard
+ * Protected page - requires authentication
+ */
+
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import { ensureCSRFToken } from '../lib/csrf';
+
+// Get user from middleware (already authenticated via middleware)
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/auth/login');
+}
+
+console.log('Rendering dashboard for user:', user.email);
+
+const csrfToken = ensureCSRFToken(Astro.cookies);
+---
+
+<Layout title="Dashboard - Insightful Health">
+  <main class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <h1 class="text-xl font-semibold text-gray-900">
+              Insightful Health
+            </h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <span class="text-sm text-gray-700">
+              Welcome, <strong>{user.email}</strong>
+            </span>
+            <button
+              id="logout-button"
+              class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div class="px-4 py-6 sm:px-0">
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Dashboard</h2>
+
+          <div class="space-y-4">
+            <div class="border-l-4 border-green-500 bg-green-50 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg
+                    class="h-5 w-5 text-green-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-green-700">
+                    <strong>Authentication successful!</strong> You are now logged
+                    in.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-6">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                User Information
+              </h3>
+              <dl class="space-y-3">
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">User ID</dt>
+                  <dd class="mt-1 text-sm text-gray-900">{user.id}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Email</dt>
+                  <dd class="mt-1 text-sm text-gray-900">{user.email}</dd>
+                </div>
+                {
+                  user.username && (
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Username
+                      </dt>
+                      <dd class="mt-1 text-sm text-gray-900">
+                        {user.username}
+                      </dd>
+                    </div>
+                  )
+                }
+                {
+                  user.fullName && (
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Full Name
+                      </dt>
+                      <dd class="mt-1 text-sm text-gray-900">
+                        {user.fullName}
+                      </dd>
+                    </div>
+                  )
+                }
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Role</dt>
+                  <dd class="mt-1 text-sm text-gray-900">
+                    {user.role || 'user'}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">
+                    Email Verified
+                  </dt>
+                  <dd class="mt-1">
+                    {
+                      user.verified ? (
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Verified
+                        </span>
+                      ) : (
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Not Verified
+                        </span>
+                      )
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- Quick Actions for Authors/Admins -->
+            {(user.role === 'author' || user.role === 'admin') && (
+              <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-emerald-900 mb-3">Quick Actions</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <a
+                    href="/dashboard/create-post"
+                    class="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Create New Post
+                  </a>
+                  <a
+                    href="/dashboard/posts"
+                    class="flex items-center px-4 py-2 bg-white text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Manage Posts
+                  </a>
+                  <a
+                    href="/dashboard/analytics"
+                    class="flex items-center px-4 py-2 bg-white text-emerald-700 border border-emerald-300 rounded-md hover:bg-emerald-50 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    View Analytics
+                  </a>
+                </div>
+              </div>
+            )}
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 class="text-sm font-medium text-blue-900 mb-2">Next Steps</h3>
+              <ul class="text-sm text-blue-800 space-y-1">
+                <li>• Complete your profile information</li>
+                <li>• Verify your email address if not already verified</li>
+                <li>• Explore the blog posts</li>
+                {(user.role === 'author' || user.role === 'admin') && (
+                  <li>• <a href="/dashboard/create-post" class="underline hover:text-blue-600">Create your first post</a></li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <input type="hidden" id="csrf-token" value={csrfToken} />
+
+  <script>
+    const logoutButton = document.getElementById(
+      'logout-button'
+    ) as HTMLButtonElement;
+    const csrfToken = (
+      document.getElementById('csrf-token') as HTMLInputElement
+    ).value;
+
+    logoutButton.addEventListener('click', async () => {
+      try {
+        logoutButton.disabled = true;
+        logoutButton.textContent = 'Logging out...';
+
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+          },
+        });
+
+        if (response.ok) {
+          window.location.href = '/auth/login';
+        } else {
+          console.error('Logout failed');
+          logoutButton.disabled = false;
+          logoutButton.textContent = 'Logout';
+        }
+      } catch (error) {
+        console.error('Logout error:', error);
+        logoutButton.disabled = false;
+        logoutButton.textContent = 'Logout';
+      }
+    });
+  </script>
+</Layout>

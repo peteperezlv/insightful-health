@@ -1,0 +1,98 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+
+let authorsWithCounts: any[] = [];
+let errorMessage = '';
+
+try {
+	// Fetch authors from API endpoint
+	const apiUrl = `${Astro.url.origin}/api/authors`;
+	console.log('[Authors Page] Fetching from:', apiUrl);
+	
+	const response = await fetch(apiUrl);
+	console.log('[Authors Page] Response status:', response.status);
+	
+	if (response.ok) {
+		authorsWithCounts = await response.json();
+		console.log('[Authors Page] Got authors:', authorsWithCounts.length);
+	} else {
+		const errorData = await response.json();
+		console.error('[Authors Page] Error response:', errorData);
+		errorMessage = `Failed to load authors: ${errorData.message || 'Unknown error'}`;
+	}
+} catch (error) {
+	console.error('[Authors Page] Fetch error:', error);
+	errorMessage = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+}
+---
+
+<Layout 
+	title="Authors"
+	description="Meet the authors and contributors of Insightful Health"
+	keywords="authors, contributors, writers, health experts"
+>
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+		<div class="mb-8">
+			<h1 class="text-4xl font-bold text-gray-900 mb-4">Authors</h1>
+			<p class="text-lg text-gray-600">Meet the experts who contribute to Insightful Health</p>
+		</div>
+
+		{errorMessage && (
+			<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+				{errorMessage}
+			</div>
+		)}
+
+		{authorsWithCounts.length > 0 ? (
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{authorsWithCounts.map((author) => (
+					<a 
+						href={`/authors/${author.id}`}
+						class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+					>
+						<div class="flex items-center mb-4">
+							{author.avatar ? (
+								<img 
+									src={author.avatar} 
+									alt={`${author.name || author.username} profile picture`}
+									class="w-16 h-16 rounded-full object-cover"
+								/>
+							) : (
+								<div class="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl font-bold">
+									{(author.name || author.username).substring(0, 2).toUpperCase()}
+								</div>
+							)}
+							<div class="ml-4">
+								<h2 class="text-xl font-semibold text-gray-900">
+									{author.name || author.username}
+								</h2>
+								{author.role === 'admin' && (
+									<span class="inline-block px-2 py-1 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
+										Admin
+									</span>
+								)}
+							</div>
+						</div>
+						
+						{author.bio && (
+							<p class="text-gray-600 text-sm mb-4 line-clamp-3">
+								{author.bio}
+							</p>
+						)}
+						
+						<div class="flex items-center justify-between text-sm text-gray-500">
+							<span>{author.postCount} {author.postCount === 1 ? 'post' : 'posts'}</span>
+							<span class="text-emerald-600 font-medium">View profile →</span>
+						</div>
+					</a>
+				))}
+			</div>
+		) : (
+			<div class="text-center py-12">
+				<p class="text-gray-600">No authors found.</p>
+			</div>
+		)}
+	</div>
+</Layout>

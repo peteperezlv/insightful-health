@@ -1,0 +1,125 @@
+---
+/**
+ * Recent Post Card Component
+ * Displays a recent blog post in a compact list format
+ */
+import type { Post } from '../lib/posts';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+
+// Format date
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+};
+
+// Truncate excerpt
+const getExcerpt = (post: Post) => {
+  if (post.excerpt) return post.excerpt;
+  if (post.content) {
+    const plainText = post.content.replace(/<[^>]*>/g, '');
+    return plainText.substring(0, 200) + (plainText.length > 200 ? '...' : '');
+  }
+  return '';
+};
+---
+
+<article class="group border-b border-gray-200 pb-4 sm:pb-6 last:border-b-0 hover:bg-gray-50 transition-colors p-3 sm:p-4 rounded-lg" role="article" aria-labelledby={`recent-post-title-${post.id}`}>
+  <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+    <!-- Featured Image (optional, for mobile/tablet) -->
+    {post.featuredImageUrl && (
+      <div class="sm:w-32 md:w-48 flex-shrink-0">
+        <a href={`/post/${post.slug}`} class="block aspect-video sm:aspect-square overflow-hidden rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" aria-label={`Read article: ${post.title}`}>
+          <img 
+            src={post.featuredImageUrl} 
+            alt={`Featured image for ${post.title}`}
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            decoding="async"
+            width="400"
+            height="300"
+          />
+        </a>
+      </div>
+    )}
+    
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+      <!-- Title -->
+      <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors line-clamp-2" id={`recent-post-title-${post.id}`}>
+        <a href={`/post/${post.slug}`} class="hover:underline focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded">
+          {post.title}
+        </a>
+      </h3>
+      
+      <!-- Excerpt -->
+      <p class="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3 line-clamp-2">
+        {getExcerpt(post)}
+      </p>
+      
+      <!-- Meta Info -->
+      <div class="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500 mb-2">
+        <span class="font-medium text-gray-700 truncate max-w-[120px] sm:max-w-none">{post.authorName || 'Anonymous'}</span>
+        <span aria-hidden="true">•</span>
+        <time datetime={post.publishedAt || post.created} class="whitespace-nowrap">
+          {formatDate(post.publishedAt || post.created)}
+        </time>
+        {post.readingTimeMinutes > 0 && (
+          <>
+            <span aria-hidden="true" class="hidden sm:inline">•</span>
+            <span aria-label={`Reading time: ${post.readingTimeMinutes} minutes`} class="whitespace-nowrap hidden sm:inline">{post.readingTimeMinutes} min read</span>
+          </>
+        )}
+      </div>
+      
+      <!-- Engagement Stats -->
+      <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
+        {post.viewCount !== undefined && post.viewCount > 0 && (
+          <span class="flex items-center gap-1" aria-label={`${post.viewCount} views`}>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span aria-hidden="true">{post.viewCount}</span>
+          </span>
+        )}
+        {post.likeCount !== undefined && post.likeCount > 0 && (
+          <span class="flex items-center gap-1" aria-label={`${post.likeCount} likes`}>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+            </svg>
+            <span aria-hidden="true">{post.likeCount}</span>
+          </span>
+        )}
+        {post.commentCount !== undefined && post.commentCount > 0 && (
+          <span class="flex items-center gap-1" aria-label={`${post.commentCount} comments`}>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            {post.commentCount}
+          </span>
+        )}
+      </div>
+    </div>
+    
+    <!-- Read More (Desktop) -->
+    <div class="hidden sm:flex items-start flex-shrink-0 mt-1">
+      <a
+        href={`/post/${post.slug}`}
+        class="inline-flex items-center text-sm text-emerald-600 font-medium hover:text-emerald-700 transition-colors whitespace-nowrap group-hover:gap-2 gap-1 min-h-[44px] px-2"
+      >
+        Read
+        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</article>

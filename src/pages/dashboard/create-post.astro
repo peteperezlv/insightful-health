@@ -1,0 +1,861 @@
+---
+/**
+ * Dashboard - Create Post Page
+ * Protected page - requires author or admin role
+ * Features: TipTap WYSIWYG editor with full formatting support
+ */
+
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { isAuthor } from '../../lib/session';
+import { ensureCSRFToken } from '../../lib/csrf';
+import { getCategories, getTags } from '../../lib/posts';
+import '../../styles/editor.css';
+
+const user = Astro.locals.user;
+
+// Double-check author/admin access (middleware should handle this, but defense in depth)
+if (!user || !isAuthor(user)) {
+  return Astro.redirect('/403');
+}
+
+const csrfToken = ensureCSRFToken(Astro.cookies);
+
+// Fetch categories and tags for the form
+// These are optional - if collections don't exist, we'll just use empty arrays
+let categories: { id: string; name: string; slug: string }[] = [];
+let tags: { id: string; name: string; slug: string }[] = [];
+
+try {
+  console.log('Fetching categories...');
+  categories = await getCategories();
+  console.log('Categories loaded:', categories.length);
+} catch (error) {
+  console.error('Failed to load categories:', error);
+}
+
+try {
+  console.log('Fetching tags...');
+  tags = await getTags();
+  console.log('Tags loaded:', tags.length);
+} catch (error) {
+  console.error('Failed to load tags:', error);
+}
+---
+
+<Layout title="Create Post - Insightful Health">
+  <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Create New Post</h1>
+          <p class="mt-2 text-sm text-gray-600">
+            Write and publish a new blog post.
+          </p>
+        </div>
+        <a
+          href="/dashboard"
+          class="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center"
+        >
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="alert-container" class="mb-6 hidden">
+      <div id="alert-message" class="p-4 rounded-md"></div>
+    </div>
+
+    <!-- Post Form -->
+    <form id="create-post-form" class="space-y-8">
+      <input type="hidden" name="csrf-token" id="csrf-token" value={csrfToken} />
+
+      <!-- Title -->
+      <div>
+        <label for="title" class="block text-sm font-medium text-gray-700">
+          Title <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="title"
+          id="title"
+          required
+          maxlength="200"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm transition-colors"
+          placeholder="Enter your post title"
+        />
+        <div class="mt-1 flex justify-between items-start">
+          <div>
+            <p class="text-xs text-gray-500">
+              A compelling title that summarizes your post.
+            </p>
+            <p id="title-error" class="text-xs text-red-500 mt-1 hidden"></p>
+          </div>
+          <span class="text-xs text-gray-400">
+            <span id="title-count">0</span>/200
+          </span>
+        </div>
+      </div>
+
+      <!-- Slug -->
+      <div>
+        <label for="slug" class="block text-sm font-medium text-gray-700">
+          Slug
+        </label>
+        <div class="mt-1 flex rounded-md shadow-sm">
+          <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+            /post/
+          </span>
+          <input
+            type="text"
+            name="slug"
+            id="slug"
+            class="flex-1 min-w-0 block w-full rounded-none rounded-r-md border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm transition-colors"
+            placeholder="auto-generated-from-title"
+          />
+        </div>
+        <p class="mt-1 text-xs text-gray-500">
+          URL-friendly version of the title. Auto-generated if left empty.
+        </p>
+        <p id="slug-error" class="text-xs text-red-500 mt-1 hidden"></p>
+      </div>
+
+      <!-- Excerpt -->
+      <div>
+        <label for="excerpt" class="block text-sm font-medium text-gray-700">
+          Excerpt
+        </label>
+        <textarea
+          name="excerpt"
+          id="excerpt"
+          rows="3"
+          maxlength="300"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm transition-colors"
+          placeholder="Brief summary of your post..."
+        ></textarea>
+        <div class="mt-1 flex justify-between items-start">
+          <div>
+            <p class="text-xs text-gray-500">
+              A short summary shown in post listings.
+            </p>
+            <p id="excerpt-error" class="text-xs text-red-500 mt-1 hidden"></p>
+          </div>
+          <span class="text-xs text-gray-400">
+            <span id="excerpt-count">0</span>/300
+          </span>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label for="content" class="block text-sm font-medium text-gray-700">
+            Content <span class="text-red-500">*</span>
+          </label>
+          <!-- Editor Mode Toggle -->
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-gray-500">Editor Mode:</span>
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+              <button
+                type="button"
+                id="mode-wysiwyg"
+                class="editor-mode-btn px-3 py-1 text-xs font-medium rounded-l-md border border-gray-300 bg-emerald-50 text-emerald-700 border-emerald-500"
+                title="Visual Editor (WYSIWYG)"
+              >
+                Visual
+              </button>
+              <button
+                type="button"
+                id="mode-markdown"
+                class="editor-mode-btn px-3 py-1 text-xs font-medium border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                title="Markdown Editor"
+              >
+                Markdown
+              </button>
+              <button
+                type="button"
+                id="mode-html"
+                class="editor-mode-btn px-3 py-1 text-xs font-medium rounded-r-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                title="Raw HTML Editor"
+              >
+                HTML
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="mt-1">
+          <!-- TipTap Rich Text Editor Container -->
+          <div id="editor-wrapper" class="editor-container">
+            <!-- Toolbar -->
+            <div class="editor-toolbar" id="editor-toolbar">
+              <!-- Undo/Redo -->
+              <div class="editor-toolbar-group">
+                <button type="button" class="editor-toolbar-btn" data-action="undo" title="Undo (Ctrl+Z)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 10h10a5 5 0 0 1 5 5v2M3 10l4-4M3 10l4 4"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="redo" title="Redo (Ctrl+Shift+Z)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10H11a5 5 0 0 0-5 5v2M21 10l-4-4M21 10l-4 4"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Text formatting -->
+              <div class="editor-toolbar-group">
+                <button type="button" class="editor-toolbar-btn" data-action="bold" title="Bold (Ctrl+B)">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 4h8a4 4 0 0 1 2.646 7.001A4.5 4.5 0 0 1 15.5 20H6V4zm3 3v4h5a1.5 1.5 0 0 0 0-3H9zm0 7v4h6.5a2 2 0 0 0 0-4H9z"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="italic" title="Italic (Ctrl+I)">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15 4H9v2h2.5l-3 12H6v2h6v-2h-2.5l3-12H15V4z"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="underline" title="Underline (Ctrl+U)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 5v6a5 5 0 0 0 10 0V5M5 19h14"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="strike" title="Strikethrough">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 9h-2V6h2v3zM13 18h-2v-3h2v3zM4 12h16v2H4v-2z"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Headings -->
+              <div class="editor-toolbar-group">
+                <select id="heading-select" class="editor-toolbar-select" title="Heading Level">
+                  <option value="paragraph">Paragraph</option>
+                  <option value="1">Heading 1</option>
+                  <option value="2">Heading 2</option>
+                  <option value="3">Heading 3</option>
+                  <option value="4">Heading 4</option>
+                </select>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Text alignment -->
+              <div class="editor-toolbar-group">
+                <button type="button" class="editor-toolbar-btn" data-action="alignLeft" title="Align Left">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 4h18v2H3V4zm0 4h12v2H3V8zm0 4h18v2H3v-2zm0 4h12v2H3v-2zm0 4h18v2H3v-2z"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="alignCenter" title="Align Center">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 4h18v2H3V4zm3 4h12v2H6V8zm-3 4h18v2H3v-2zm3 4h12v2H6v-2zm-3 4h18v2H3v-2z"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="alignRight" title="Align Right">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 4h18v2H3V4zm6 4h12v2H9V8zm-6 4h18v2H3v-2zm6 4h12v2H9v-2zm-6 4h18v2H3v-2z"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Lists -->
+              <div class="editor-toolbar-group">
+                <button type="button" class="editor-toolbar-btn" data-action="bulletList" title="Bullet List">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 6h14v2H8V6zm0 5h14v2H8v-2zm0 5h14v2H8v-2zM3 5.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm0 5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm0 5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="orderedList" title="Numbered List">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 6h14v2H8V6zm0 5h14v2H8v-2zm0 5h14v2H8v-2zM3 5v2h2V5H3zm0 5v2h2v-2H3zm0 5v2h2v-2H3z"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="blockquote" title="Blockquote">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Code & Links -->
+              <div class="editor-toolbar-group">
+                <button type="button" class="editor-toolbar-btn" data-action="code" title="Inline Code">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="codeBlock" title="Code Block">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M8 10l-2 2 2 2M16 10l2 2-2 2M13 7l-2 10"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="link" title="Insert Link (Ctrl+K)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="image" title="Insert Image">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Horizontal Rule -->
+              <div class="editor-toolbar-group">
+                <button type="button" class="editor-toolbar-btn" data-action="hr" title="Horizontal Rule">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2 11h20v2H2z"/>
+                  </svg>
+                </button>
+                <button type="button" class="editor-toolbar-btn" data-action="clearFormat" title="Clear Formatting">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 21l10-18M5 7h9M10 17h9"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Fullscreen -->
+              <div class="editor-toolbar-group">
+                <button type="button" class="editor-toolbar-btn" data-action="fullscreen" title="Toggle Fullscreen">
+                  <svg id="fullscreen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- TipTap Editor Content Area -->
+            <div class="editor-content" id="editor-content">
+              <!-- TipTap will render here -->
+            </div>
+
+            <!-- Editor Footer -->
+            <div class="editor-footer">
+              <div id="editor-status" class="flex items-center space-x-2">
+                <span class="text-gray-400">Ready</span>
+              </div>
+              <div class="flex items-center space-x-4">
+                <span><span id="char-count">0</span> characters</span>
+                <span><span id="word-count">0</span> words</span>
+                <span><span id="reading-time">1</span> min read</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Markdown Editor (hidden by default) -->
+          <div id="markdown-editor-wrapper" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- Markdown Input -->
+              <div class="border border-gray-300 rounded-md overflow-hidden">
+                <div class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Markdown</span>
+                  <div class="flex items-center space-x-2">
+                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="**" title="Bold">
+                      <strong>B</strong>
+                    </button>
+                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="*" title="Italic">
+                      <em>I</em>
+                    </button>
+                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="~~" title="Strikethrough">
+                      <s>S</s>
+                    </button>
+                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md-line="# " title="Heading">
+                      H
+                    </button>
+                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="[](url)" title="Link">
+                      🔗
+                    </button>
+                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="![alt](url)" title="Image">
+                      🖼
+                    </button>
+                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="`" title="Code">
+                      &lt;/&gt;
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  id="markdown-input"
+                  class="w-full h-96 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Write your content in Markdown...&#10;&#10;# Heading 1&#10;## Heading 2&#10;&#10;**bold** and *italic* text&#10;&#10;- List item 1&#10;- List item 2&#10;&#10;[Link text](https://example.com)&#10;&#10;![Image alt](image-url)"
+                ></textarea>
+              </div>
+              
+              <!-- Markdown Preview -->
+              <div class="border border-gray-300 rounded-md overflow-hidden">
+                <div class="bg-gray-50 px-4 py-2 border-b border-gray-300">
+                  <span class="text-sm font-medium text-gray-700">Preview</span>
+                </div>
+                <div id="markdown-preview" class="prose prose-emerald max-w-none h-96 p-4 overflow-y-auto bg-white">
+                  <p class="text-gray-400 italic">Preview will appear here...</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Markdown Footer -->
+            <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+              <span>Supports GitHub Flavored Markdown</span>
+              <div class="flex items-center space-x-4">
+                <span><span id="md-char-count">0</span> characters</span>
+                <span><span id="md-word-count">0</span> words</span>
+                <span><span id="md-reading-time">1</span> min read</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HTML Editor (hidden by default) -->
+          <div id="html-editor-wrapper" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- HTML Input -->
+              <div class="border border-gray-300 rounded-md overflow-hidden">
+                <div class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">HTML</span>
+                  <div class="flex items-center space-x-2">
+                    <button type="button" id="format-html-btn" class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" title="Format HTML">
+                      Format
+                    </button>
+                    <button type="button" id="validate-html-btn" class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" title="Validate HTML">
+                      Validate
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  id="html-input"
+                  class="w-full h-96 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Enter raw HTML content...&#10;&#10;<h1>Heading</h1>&#10;<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>&#10;<ul>&#10;  <li>List item 1</li>&#10;  <li>List item 2</li>&#10;</ul>"
+                ></textarea>
+              </div>
+              
+              <!-- HTML Preview -->
+              <div class="border border-gray-300 rounded-md overflow-hidden">
+                <div class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Preview</span>
+                  <span id="html-validation-status" class="text-xs"></span>
+                </div>
+                <div id="html-preview" class="prose prose-emerald max-w-none h-96 p-4 overflow-y-auto bg-white">
+                  <p class="text-gray-400 italic">Preview will appear here...</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- HTML Footer -->
+            <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+              <span class="text-yellow-600">⚠️ HTML is sanitized before saving to prevent XSS attacks</span>
+              <div class="flex items-center space-x-4">
+                <span><span id="html-char-count">0</span> characters</span>
+                <span><span id="html-word-count">0</span> words</span>
+                <span><span id="html-reading-time">1</span> min read</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hidden input to store content for form submission -->
+          <input type="hidden" name="content" id="content-input" value="" />
+        </div>
+        <div class="mt-1 flex justify-between items-start">
+          <p class="text-xs text-gray-500">
+            Use the toolbar above or keyboard shortcuts for formatting. Switch between Visual, Markdown, or HTML mode.
+          </p>
+          <span class="text-xs text-gray-400">
+            <span id="content-char-count">0</span>/50000 chars
+          </span>
+        </div>
+        <p id="content-error" class="text-xs text-red-500 mt-1 hidden"></p>
+      </div>
+
+      <!-- Featured Image -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">
+          Featured Image
+        </label>
+        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md transition-colors" id="image-dropzone">
+          <div class="space-y-1 text-center" id="image-placeholder">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div class="flex text-sm text-gray-600">
+              <label for="featured-image" class="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
+                <span>Upload a file</span>
+                <input id="featured-image" name="featured-image" type="file" class="sr-only" accept="image/*" />
+              </label>
+              <p class="pl-1">or drag and drop</p>
+            </div>
+            <p class="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+          </div>
+          <div id="image-preview" class="hidden">
+            <img id="preview-img" src="" alt="Preview" class="max-h-48 rounded-md" />
+            <button type="button" id="remove-image" class="mt-2 text-sm text-red-600 hover:text-red-500">
+              Remove image
+            </button>
+          </div>
+        </div>
+        <p id="image-error" class="text-xs text-red-500 mt-1 hidden"></p>
+        <input type="hidden" name="featuredImageUrl" id="featuredImageUrl" value="" />
+      </div>
+
+      <!-- Category and Tags -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Category -->
+        <div>
+          <label for="category" class="block text-sm font-medium text-gray-700">
+            Category
+          </label>
+          <select
+            name="category"
+            id="category"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+          >
+            <option value="">Select a category</option>
+            {categories.length > 0 ? (
+              categories.map((cat) => (
+                <option value={cat.id}>{cat.name}</option>
+              ))
+            ) : (
+              <>
+                <option value="health-policy">Health Policy</option>
+                <option value="epidemiology">Epidemiology</option>
+                <option value="mental-health">Mental Health</option>
+                <option value="nutrition">Nutrition</option>
+                <option value="research">Research</option>
+              </>
+            )}
+          </select>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label for="tags" class="block text-sm font-medium text-gray-700">
+            Tags
+          </label>
+          <input
+            type="text"
+            name="tags"
+            id="tags"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+            placeholder="e.g., covid-19, vaccines, public-health"
+          />
+          <p class="mt-1 text-xs text-gray-500">
+            Comma-separated list of tags.
+          </p>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Status
+        </label>
+        <div class="flex items-center space-x-6">
+          <div class="flex items-center">
+            <input
+              id="status-draft"
+              name="status"
+              type="radio"
+              value="draft"
+              checked
+              class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+            />
+            <label for="status-draft" class="ml-2 text-sm text-gray-700">Draft</label>
+          </div>
+          <div class="flex items-center">
+            <input
+              id="status-published"
+              name="status"
+              type="radio"
+              value="published"
+              class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+            />
+            <label for="status-published" class="ml-2 text-sm text-gray-700">Published</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Section (Collapsible) -->
+      <div class="border border-gray-200 rounded-lg">
+        <button
+          type="button"
+          id="seo-toggle"
+          class="w-full flex items-center justify-between p-4 text-left text-gray-700 hover:bg-gray-50"
+        >
+          <span class="font-medium">SEO Settings</span>
+          <svg class="w-5 h-5 transform transition-transform" id="seo-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div id="seo-panel" class="hidden p-4 border-t border-gray-200 space-y-4">
+          <!-- SEO Preview -->
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+            <p class="text-xs font-medium text-gray-600 mb-2">Preview in Search Results:</p>
+            <div class="space-y-1">
+              <div class="text-blue-600 text-lg font-medium" id="seo-title-preview">Your Post Title | Insightful Health</div>
+              <div class="text-green-700 text-xs">insightfulhealth.com/post/your-slug</div>
+              <div class="text-gray-600 text-sm" id="seo-description-preview">Your post description will appear here...</div>
+            </div>
+          </div>
+
+          <div>
+            <label for="seo-title" class="block text-sm font-medium text-gray-700">
+              SEO Title
+            </label>
+            <input
+              type="text"
+              name="seo-title"
+              id="seo-title"
+              maxlength="60"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm transition-colors"
+              placeholder="Custom title for search engines (max 60 chars)"
+            />
+            <div class="mt-1 flex justify-between items-start">
+              <p class="text-xs text-gray-500">Auto-filled from post title. Leave empty to use post title.</p>
+              <p id="seo-title-error" class="text-xs text-red-500 hidden"></p>
+              <span class="text-xs text-gray-400"><span id="seo-title-count">0</span>/60</span>
+            </div>
+          </div>
+          <div>
+            <label for="seo-description" class="block text-sm font-medium text-gray-700">
+              Meta Description
+            </label>
+            <textarea
+              name="seo-description"
+              id="seo-description"
+              rows="2"
+              maxlength="160"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm transition-colors"
+              placeholder="Custom description for search engines (max 160 chars)"
+            ></textarea>
+            <div class="mt-1 flex justify-between items-start">
+              <p class="text-xs text-gray-500">Auto-filled from excerpt. Leave empty to use excerpt.</p>
+              <p id="seo-description-error" class="text-xs text-red-500 hidden"></p>
+              <span class="text-xs text-gray-400"><span id="seo-description-count">0</span>/160</span>
+            </div>
+          </div>
+          <div>
+            <label for="keywords" class="block text-sm font-medium text-gray-700">
+              Keywords <span class="text-gray-500 font-normal">(5-10 recommended)</span>
+            </label>
+            <input
+              type="text"
+              name="keywords"
+              id="keywords"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+              placeholder="public health, analytics, data science"
+            />
+            <p class="mt-1 text-xs text-gray-500">Comma-separated keywords for search engines</p>
+          </div>
+          <div>
+            <label for="canonical-url" class="block text-sm font-medium text-gray-700">
+              Canonical URL <span class="text-gray-500 font-normal">(optional)</span>
+            </label>
+            <input
+              type="url"
+              name="canonical-url"
+              id="canonical-url"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+              placeholder="https://example.com/original-post"
+            />
+            <p class="mt-1 text-xs text-gray-500">If this post was originally published elsewhere</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheduled Publishing (Collapsible) -->
+      <div class="border border-gray-200 rounded-lg">
+        <button
+          type="button"
+          id="schedule-toggle"
+          class="w-full flex items-center justify-between p-4 text-left text-gray-700 hover:bg-gray-50"
+        >
+          <span class="font-medium">Schedule Publishing</span>
+          <svg class="w-5 h-5 transform transition-transform" id="schedule-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <div id="schedule-panel" class="hidden p-4 border-t border-gray-200">
+          <div>
+            <label for="scheduled-for" class="block text-sm font-medium text-gray-700">
+              Publish Date & Time
+            </label>
+            <input
+              type="datetime-local"
+              name="scheduled-for"
+              id="scheduled-for"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+            />
+            <p class="mt-1 text-xs text-gray-500">
+              Leave empty to publish immediately when status is set to "Published".
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+        <button
+          type="button"
+          id="preview-btn"
+          class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+        >
+          Preview
+        </button>
+        <div class="flex items-center space-x-3">
+          <span id="autosave-status" class="text-xs text-gray-400"></span>
+          <button
+            type="button"
+            id="save-draft-btn"
+            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+          >
+            Save Draft
+          </button>
+          <button
+            type="submit"
+            id="submit-btn"
+            class="px-6 py-2 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Create Post
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="preview-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="preview-backdrop"></div>
+      <div class="inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Post Preview</h3>
+          <button type="button" id="close-preview" class="text-gray-400 hover:text-gray-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="prose max-w-none" id="preview-content">
+          <!-- Preview content will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<!-- Link Popup Modal -->
+<div id="link-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="link-backdrop"></div>
+    <div class="inline-block w-full max-w-md px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+      <div class="mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Insert Link</h3>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label for="link-url" class="block text-sm font-medium text-gray-700">URL</label>
+          <input
+            type="url"
+            id="link-url"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+            placeholder="https://example.com"
+          />
+        </div>
+      </div>
+      <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-3">
+        <button
+          type="button"
+          id="confirm-link-btn"
+          class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-emerald-600 border border-transparent rounded-md shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:w-auto sm:text-sm"
+        >
+          Insert Link
+        </button>
+        <button
+          type="button"
+          id="remove-link-btn"
+          class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-red-700 bg-white border border-red-300 rounded-md shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm"
+        >
+          Remove Link
+        </button>
+        <button
+          type="button"
+          id="cancel-link-btn"
+          class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:mt-0 sm:w-auto sm:text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Insert Modal -->
+<div id="image-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="image-backdrop"></div>
+    <div class="inline-block w-full max-w-md px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+      <div class="mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Insert Image</h3>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label for="image-url" class="block text-sm font-medium text-gray-700">Image URL</label>
+          <input
+            type="url"
+            id="image-url"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+            placeholder="https://example.com/image.jpg"
+          />
+        </div>
+        <div>
+          <label for="image-alt" class="block text-sm font-medium text-gray-700">Alt Text</label>
+          <input
+            type="text"
+            id="image-alt"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+            placeholder="Describe the image..."
+          />
+        </div>
+      </div>
+      <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-3">
+        <button
+          type="button"
+          id="confirm-image-btn"
+          class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-emerald-600 border border-transparent rounded-md shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:w-auto sm:text-sm"
+        >
+          Insert Image
+        </button>
+        <button
+          type="button"
+          id="cancel-image-btn"
+          class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:mt-0 sm:w-auto sm:text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import '../../lib/create-post-editor.ts';
+</script>
+  const csrfToken = document.getElementById('csrf-token');

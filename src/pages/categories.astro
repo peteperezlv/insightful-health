@@ -1,0 +1,99 @@
+---
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import { getCategories } from '../lib/posts';
+import { getPocketBase } from '../lib/pocketbase';
+
+const pb = getPocketBase();
+
+let categoriesWithCounts: any[] = [];
+
+try {
+	// Get all categories
+	const categories = await getCategories();
+	
+	// Get post counts for each category
+	categoriesWithCounts = await Promise.all(
+		categories.map(async (category) => {
+			try {
+				const posts = await pb.collection('posts').getList(1, 1, {
+					filter: `category="${category.id}" && status="published"`,
+				});
+				return {
+					...category,
+					postCount: posts.totalItems,
+				};
+			} catch (error) {
+				console.error(`Error fetching posts for category ${category.id}:`, error);
+				return {
+					...category,
+					postCount: 0,
+				};
+			}
+		})
+	);
+
+	// Sort by post count
+	categoriesWithCounts.sort((a, b) => b.postCount - a.postCount);
+} catch (error) {
+	console.error('Error fetching categories:', error);
+}
+---
+
+<Layout 
+	title="Explore Topics"
+	description="Browse all health topics and categories on Insightful Health"
+	keywords="health topics, categories, public health, health data"
+>
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+		<div class="mb-8">
+			<h1 class="text-4xl font-bold text-gray-900 mb-4">Explore Topics</h1>
+			<p class="text-lg text-gray-600">Browse articles by health topic and category</p>
+		</div>
+
+		{categoriesWithCounts.length > 0 ? (
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{categoriesWithCounts.map((category) => (
+					<a 
+						href={`/category/${category.slug}`}
+						class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+					>
+						<div class="flex items-start justify-between mb-4">
+							<div>
+								<h2 class="text-xl font-semibold text-gray-900 mb-2">
+									{category.name}
+								</h2>
+								{category.description && (
+									<p class="text-gray-600 text-sm line-clamp-3">
+										{category.description}
+									</p>
+								)}
+							</div>
+						</div>
+						
+						<div class="flex items-center justify-between text-sm mt-4 pt-4 border-t border-gray-200">
+							<span class="text-gray-500">
+								{category.postCount} {category.postCount === 1 ? 'post' : 'posts'}
+							</span>
+							<span class="text-emerald-600 font-medium flex items-center">
+								View posts
+								<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+								</svg>
+							</span>
+						</div>
+					</a>
+				))}
+			</div>
+		) : (
+			<div class="text-center py-12">
+				<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+				</svg>
+				<h3 class="mt-2 text-sm font-medium text-gray-900">No categories found</h3>
+				<p class="mt-1 text-sm text-gray-500">Categories will appear here once they are created.</p>
+			</div>
+		)}
+	</div>
+</Layout>

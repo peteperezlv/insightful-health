@@ -1,0 +1,1087 @@
+{
+  "collections": [
+    {
+      "id": "users_collection",
+      "name": "users",
+      "type": "auth",
+      "system": false,
+      "listRule": "true",
+      "viewRule": "user.id = @request.auth.id || @request.auth.verified",
+      "createRule": "!@request.auth.id",
+      "updateRule": "user.id = @request.auth.id || @request.auth.role = 'admin'",
+      "deleteRule": "@request.auth.role = 'admin'",
+      "options": {
+        "allowEmailAuth": true,
+        "allowOAuth2Auth": true,
+        "allowUsernameAuth": false,
+        "exceptEmailDomains": [],
+        "manualVerification": false,
+        "minPasswordLength": 8,
+        "onlyEmailDomains": [],
+        "requireEmail": true
+      },
+      "fields": [
+        {
+          "id": "email_field",
+          "name": "email",
+          "type": "email",
+          "system": false,
+          "required": true,
+          "unique": true,
+          "options": {}
+        },
+        {
+          "id": "username_field",
+          "name": "username",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "unique": false,
+          "options": {
+            "min": 3,
+            "max": 30,
+            "pattern": "^[a-zA-Z0-9_]+$"
+          }
+        },
+        {
+          "id": "emailVerified_field",
+          "name": "emailVerified",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "fullName_field",
+          "name": "fullName",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {
+            "max": 255
+          }
+        },
+        {
+          "id": "bio_field",
+          "name": "bio",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {
+            "max": 500
+          }
+        },
+        {
+          "id": "profileImageUrl_field",
+          "name": "profileImageUrl",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "twitterUrl_field",
+          "name": "twitterUrl",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "linkedinUrl_field",
+          "name": "linkedinUrl",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "githubUrl_field",
+          "name": "githubUrl",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "personalWebsite_field",
+          "name": "personalWebsite",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "role_field",
+          "name": "role",
+          "type": "select",
+          "system": false,
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "values": ["user", "author", "admin"]
+          }
+        },
+        {
+          "id": "isVerified_field",
+          "name": "isVerified",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "isBanned_field",
+          "name": "isBanned",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "banReason_field",
+          "name": "banReason",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "bannedAt_field",
+          "name": "bannedAt",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "emailNotifications_field",
+          "name": "emailNotifications",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "newsletterSubscribed_field",
+          "name": "newsletterSubscribed",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "lastLoginAt_field",
+          "name": "lastLoginAt",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "loginCount_field",
+          "name": "loginCount",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "id": "totalPostViews_field",
+          "name": "totalPostViews",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_users_email ON users(email)",
+        "CREATE INDEX idx_users_role ON users(role)",
+        "CREATE INDEX idx_users_isBanned ON users(isBanned)",
+        "CREATE INDEX idx_users_created ON users(created DESC)"
+      ]
+    },
+    {
+      "id": "categories_collection",
+      "name": "categories",
+      "type": "base",
+      "system": false,
+      "listRule": "true",
+      "viewRule": "true",
+      "createRule": "@request.auth.role = 'admin'",
+      "updateRule": "@request.auth.role = 'admin'",
+      "deleteRule": "@request.auth.role = 'admin'",
+      "fields": [
+        {
+          "id": "name_field",
+          "name": "name",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "unique": true,
+          "options": {}
+        },
+        {
+          "id": "slug_field",
+          "name": "slug",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "unique": true,
+          "options": {}
+        },
+        {
+          "id": "description_field",
+          "name": "description",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "icon_field",
+          "name": "icon",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "color_field",
+          "name": "color",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {
+            "pattern": "^#[0-9A-F]{6}$"
+          }
+        },
+        {
+          "id": "displayOrder_field",
+          "name": "displayOrder",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_categories_name ON categories(name)",
+        "CREATE UNIQUE INDEX idx_categories_slug ON categories(slug)",
+        "CREATE INDEX idx_categories_displayOrder ON categories(displayOrder)"
+      ]
+    },
+    {
+      "id": "tags_collection",
+      "name": "tags",
+      "type": "base",
+      "system": false,
+      "listRule": "true",
+      "viewRule": "true",
+      "createRule": "@request.auth.role = 'admin' || @request.auth.role = 'author'",
+      "updateRule": "@request.auth.role = 'admin'",
+      "deleteRule": "@request.auth.role = 'admin'",
+      "fields": [
+        {
+          "id": "name_field",
+          "name": "name",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "unique": true,
+          "options": {}
+        },
+        {
+          "id": "slug_field",
+          "name": "slug",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "unique": true,
+          "options": {}
+        },
+        {
+          "id": "description_field",
+          "name": "description",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_tags_name ON tags(name)",
+        "CREATE UNIQUE INDEX idx_tags_slug ON tags(slug)"
+      ]
+    },
+    {
+      "id": "posts_collection",
+      "name": "posts",
+      "type": "base",
+      "system": false,
+      "listRule": "status = 'published' || @request.auth.role = 'admin' || authorId = @request.auth.id",
+      "viewRule": "status = 'published' || @request.auth.role = 'admin' || authorId = @request.auth.id",
+      "createRule": "@request.auth.role = 'author' || @request.auth.role = 'admin'",
+      "updateRule": "authorId = @request.auth.id || @request.auth.role = 'admin'",
+      "deleteRule": "@request.auth.role = 'admin'",
+      "fields": [
+        {
+          "id": "title_field",
+          "name": "title",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {
+            "min": 1,
+            "max": 200
+          }
+        },
+        {
+          "id": "slug_field",
+          "name": "slug",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "unique": true,
+          "options": {}
+        },
+        {
+          "id": "excerpt_field",
+          "name": "excerpt",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {
+            "max": 300
+          }
+        },
+        {
+          "id": "content_field",
+          "name": "content",
+          "type": "editor",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "featuredImageUrl_field",
+          "name": "featuredImageUrl",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "status_field",
+          "name": "status",
+          "type": "select",
+          "system": false,
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["draft", "published", "deleted"]
+          }
+        },
+        {
+          "id": "isFeatured_field",
+          "name": "isFeatured",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "categoryId_field",
+          "name": "categoryId",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "categories_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "tags_field",
+          "name": "tags",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "tags_collection"
+          }
+        },
+        {
+          "id": "seoTitle_field",
+          "name": "seoTitle",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {
+            "max": 60
+          }
+        },
+        {
+          "id": "seoDescription_field",
+          "name": "seoDescription",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {
+            "max": 160
+          }
+        },
+        {
+          "id": "seoKeywords_field",
+          "name": "seoKeywords",
+          "type": "json",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "canonicalUrl_field",
+          "name": "canonicalUrl",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "ogImageUrl_field",
+          "name": "ogImageUrl",
+          "type": "url",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "ogTitle_field",
+          "name": "ogTitle",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "ogDescription_field",
+          "name": "ogDescription",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "authorId_field",
+          "name": "authorId",
+          "type": "relation",
+          "system": false,
+          "required": true,
+          "options": {
+            "collectionId": "users_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "authorName_field",
+          "name": "authorName",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "viewCount_field",
+          "name": "viewCount",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "id": "likeCount_field",
+          "name": "likeCount",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "id": "commentCount_field",
+          "name": "commentCount",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "id": "readingTimeMinutes_field",
+          "name": "readingTimeMinutes",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "id": "wordCount_field",
+          "name": "wordCount",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "id": "publishedAt_field",
+          "name": "publishedAt",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "scheduledFor_field",
+          "name": "scheduledFor",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "deletedAt_field",
+          "name": "deletedAt",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "isApproved_field",
+          "name": "isApproved",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "approvedBy_field",
+          "name": "approvedBy",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "users_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "approvedAt_field",
+          "name": "approvedAt",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_posts_authorId ON posts(authorId)",
+        "CREATE UNIQUE INDEX idx_posts_slug ON posts(slug)",
+        "CREATE INDEX idx_posts_status_publishedAt ON posts(status, publishedAt DESC)",
+        "CREATE INDEX idx_posts_categoryId ON posts(categoryId)",
+        "CREATE INDEX idx_posts_viewCount ON posts(viewCount DESC)",
+        "CREATE INDEX idx_posts_isFeatured ON posts(isFeatured)",
+        "CREATE INDEX idx_posts_created ON posts(created DESC)"
+      ]
+    },
+    {
+      "id": "comments_collection",
+      "name": "comments",
+      "type": "base",
+      "system": false,
+      "listRule": "status = 'approved' || @request.auth.role = 'admin'",
+      "viewRule": "status = 'approved' || @request.auth.role = 'admin' || authorId = @request.auth.id",
+      "createRule": "@request.auth.id != ''",
+      "updateRule": "authorId = @request.auth.id || @request.auth.role = 'admin'",
+      "deleteRule": "authorId = @request.auth.id || @request.auth.role = 'admin'",
+      "fields": [
+        {
+          "id": "postId_field",
+          "name": "postId",
+          "type": "relation",
+          "system": false,
+          "required": true,
+          "options": {
+            "collectionId": "posts_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "content_field",
+          "name": "content",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {
+            "min": 1,
+            "max": 5000
+          }
+        },
+        {
+          "id": "authorId_field",
+          "name": "authorId",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "users_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "authorName_field",
+          "name": "authorName",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "authorEmail_field",
+          "name": "authorEmail",
+          "type": "email",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "parentCommentId_field",
+          "name": "parentCommentId",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "comments_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "status_field",
+          "name": "status",
+          "type": "select",
+          "system": false,
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["pending", "approved", "rejected", "spam"]
+          }
+        },
+        {
+          "id": "approvedBy_field",
+          "name": "approvedBy",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "users_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "approvedAt_field",
+          "name": "approvedAt",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "rejectionReason_field",
+          "name": "rejectionReason",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "isEdited_field",
+          "name": "isEdited",
+          "type": "bool",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "editedAt_field",
+          "name": "editedAt",
+          "type": "date",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "editHistory_field",
+          "name": "editHistory",
+          "type": "json",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "ipAddress_field",
+          "name": "ipAddress",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "userAgent_field",
+          "name": "userAgent",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "likeCount_field",
+          "name": "likeCount",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_comments_postId ON comments(postId)",
+        "CREATE INDEX idx_comments_authorId ON comments(authorId)",
+        "CREATE INDEX idx_comments_parentCommentId ON comments(parentCommentId)",
+        "CREATE INDEX idx_comments_status ON comments(status)",
+        "CREATE INDEX idx_comments_created ON comments(created DESC)",
+        "CREATE INDEX idx_comments_postId_status ON comments(postId, status)"
+      ]
+    },
+    {
+      "id": "likes_collection",
+      "name": "likes",
+      "type": "base",
+      "system": false,
+      "listRule": "true",
+      "viewRule": "true",
+      "createRule": "true",
+      "updateRule": "false",
+      "deleteRule": "@request.auth.role = 'admin' || userId = @request.auth.id",
+      "fields": [
+        {
+          "id": "postId_field",
+          "name": "postId",
+          "type": "relation",
+          "system": false,
+          "required": true,
+          "options": {
+            "collectionId": "posts_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "userId_field",
+          "name": "userId",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "users_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "ipAddress_field",
+          "name": "ipAddress",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "sessionId_field",
+          "name": "sessionId",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "userAgent_field",
+          "name": "userAgent",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "referer_field",
+          "name": "referer",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_likes_postId ON likes(postId)",
+        "CREATE INDEX idx_likes_userId ON likes(userId)",
+        "CREATE UNIQUE INDEX idx_likes_postId_userId ON likes(postId, userId)",
+        "CREATE UNIQUE INDEX idx_likes_postId_ipAddress ON likes(postId, ipAddress, sessionId)"
+      ]
+    },
+    {
+      "id": "post_versions_collection",
+      "name": "post_versions",
+      "type": "base",
+      "system": false,
+      "listRule": "@request.auth.role = 'admin'",
+      "viewRule": "@request.auth.role = 'admin'",
+      "createRule": "@request.auth.role = 'admin'",
+      "updateRule": "false",
+      "deleteRule": "@request.auth.role = 'admin'",
+      "fields": [
+        {
+          "id": "postId_field",
+          "name": "postId",
+          "type": "relation",
+          "system": false,
+          "required": true,
+          "options": {
+            "collectionId": "posts_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "versionNumber_field",
+          "name": "versionNumber",
+          "type": "number",
+          "system": false,
+          "required": true,
+          "options": {
+            "min": 1
+          }
+        },
+        {
+          "id": "title_field",
+          "name": "title",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "slug_field",
+          "name": "slug",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "content_field",
+          "name": "content",
+          "type": "editor",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "excerpt_field",
+          "name": "excerpt",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "status_field",
+          "name": "status",
+          "type": "select",
+          "system": false,
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["draft", "published", "deleted"]
+          }
+        },
+        {
+          "id": "editedBy_field",
+          "name": "editedBy",
+          "type": "relation",
+          "system": false,
+          "required": true,
+          "options": {
+            "collectionId": "users_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "editReason_field",
+          "name": "editReason",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "changesSummary_field",
+          "name": "changesSummary",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_post_versions_postId ON post_versions(postId)",
+        "CREATE INDEX idx_post_versions_editedBy ON post_versions(editedBy)",
+        "CREATE INDEX idx_post_versions_created ON post_versions(created DESC)"
+      ]
+    },
+    {
+      "id": "analytics_collection",
+      "name": "analytics",
+      "type": "base",
+      "system": false,
+      "listRule": "@request.auth.role = 'admin'",
+      "viewRule": "@request.auth.role = 'admin'",
+      "createRule": "true",
+      "updateRule": "false",
+      "deleteRule": "@request.auth.role = 'admin'",
+      "fields": [
+        {
+          "id": "postId_field",
+          "name": "postId",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "posts_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "userId_field",
+          "name": "userId",
+          "type": "relation",
+          "system": false,
+          "required": false,
+          "options": {
+            "collectionId": "users_collection",
+            "maxSelect": 1
+          }
+        },
+        {
+          "id": "eventType_field",
+          "name": "eventType",
+          "type": "select",
+          "system": false,
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": ["view", "like", "comment", "share", "search"]
+          }
+        },
+        {
+          "id": "ipAddress_field",
+          "name": "ipAddress",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "sessionId_field",
+          "name": "sessionId",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "referer_field",
+          "name": "referer",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "userAgent_field",
+          "name": "userAgent",
+          "type": "text",
+          "system": false,
+          "required": false,
+          "options": {}
+        },
+        {
+          "id": "deviceType_field",
+          "name": "deviceType",
+          "type": "select",
+          "system": false,
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "values": ["desktop", "mobile", "tablet"]
+          }
+        },
+        {
+          "id": "pageUrl_field",
+          "name": "pageUrl",
+          "type": "text",
+          "system": false,
+          "required": true,
+          "options": {}
+        },
+        {
+          "id": "timeOnPage_field",
+          "name": "timeOnPage",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "id": "scrollDepth_field",
+          "name": "scrollDepth",
+          "type": "number",
+          "system": false,
+          "required": false,
+          "options": {
+            "min": 0,
+            "max": 100
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_analytics_postId ON analytics(postId)",
+        "CREATE INDEX idx_analytics_userId ON analytics(userId)",
+        "CREATE INDEX idx_analytics_eventType ON analytics(eventType)",
+        "CREATE INDEX idx_analytics_created ON analytics(created DESC)",
+        "CREATE INDEX idx_analytics_postId_created ON analytics(postId, created DESC)"
+      ]
+    }
+  ]
+}

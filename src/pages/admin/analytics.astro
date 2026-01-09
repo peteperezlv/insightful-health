@@ -1,0 +1,393 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+
+// Get user from middleware (already authenticated via middleware)
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/auth/login');
+}
+
+if (user.role !== 'admin') {
+  return Astro.redirect('/403');
+}
+---
+
+<Layout title="Platform Analytics - Admin - Insightful Health">
+  <div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Platform Analytics</h1>
+            <p class="mt-2 text-gray-600">Overview of platform-wide statistics and trends</p>
+          </div>
+          <a 
+            href="/admin" 
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            ← Back to Admin
+          </a>
+        </div>
+      </div>
+
+      <!-- Time Period Selector -->
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
+        <select 
+          id="period" 
+          class="block w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+        >
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <p class="mt-4 text-gray-600">Loading analytics...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p class="text-red-800">Failed to load analytics. Please try again later.</p>
+      </div>
+
+      <!-- Total Counts -->
+      <div id="totals" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Total Users</p>
+              <p id="total-users" class="mt-2 text-3xl font-bold text-gray-900">0</p>
+              <p id="new-users" class="mt-1 text-sm text-green-600">+0 this period</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Total Posts</p>
+              <p id="total-posts" class="mt-2 text-3xl font-bold text-gray-900">0</p>
+              <p id="new-posts" class="mt-1 text-sm text-green-600">+0 this period</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Total Comments</p>
+              <p id="total-comments" class="mt-2 text-3xl font-bold text-gray-900">0</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600">Total Likes</p>
+              <p id="total-likes" class="mt-2 text-3xl font-bold text-gray-900">0</p>
+            </div>
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Stats -->
+      <div id="activity" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-sm font-medium text-gray-600 mb-2">Active Users</h3>
+          <p id="active-users" class="text-2xl font-bold text-gray-900">0</p>
+          <p class="text-xs text-gray-500 mt-1">Users with activity</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-sm font-medium text-gray-600 mb-2">Active Sessions</h3>
+          <p id="active-sessions" class="text-2xl font-bold text-gray-900">0</p>
+          <p class="text-xs text-gray-500 mt-1">Unique sessions</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-sm font-medium text-gray-600 mb-2">Total Events</h3>
+          <p id="total-events" class="text-2xl font-bold text-gray-900">0</p>
+          <p class="text-xs text-gray-500 mt-1">Tracked interactions</p>
+        </div>
+      </div>
+
+      <!-- Activity Chart -->
+      <div id="chart-container" class="hidden bg-white rounded-lg shadow-sm p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Activity Over Time</h2>
+        <canvas id="activity-chart"></canvas>
+      </div>
+
+      <!-- Event Types -->
+      <div id="events-container" class="hidden bg-white rounded-lg shadow-sm p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Events by Type</h2>
+        <div class="max-w-md mx-auto">
+          <canvas id="events-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Top Posts -->
+      <div id="top-posts-container" class="hidden bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900">Top Performing Posts</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Likes</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+              </tr>
+            </thead>
+            <tbody id="top-posts-body" class="bg-white divide-y divide-gray-200">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Trending Authors -->
+      <div id="authors-container" class="hidden bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900">Trending Authors</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posts</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Views</th>
+              </tr>
+            </thead>
+            <tbody id="authors-body" class="bg-white divide-y divide-gray-200">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Popular Searches -->
+      <div id="searches-container" class="hidden bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Popular Searches</h2>
+        <div id="searches-list" class="space-y-2">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    let currentPeriod = 30;
+
+    async function loadAnalytics() {
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error');
+      const totalsEl = document.getElementById('totals');
+      const activityEl = document.getElementById('activity');
+      const chartContainerEl = document.getElementById('chart-container');
+      const eventsContainerEl = document.getElementById('events-container');
+      const topPostsContainerEl = document.getElementById('top-posts-container');
+      const authorsContainerEl = document.getElementById('authors-container');
+      const searchesContainerEl = document.getElementById('searches-container');
+
+      try {
+        loadingEl?.classList.remove('hidden');
+        errorEl?.classList.add('hidden');
+        totalsEl?.classList.add('hidden');
+        activityEl?.classList.add('hidden');
+        chartContainerEl?.classList.add('hidden');
+        eventsContainerEl?.classList.add('hidden');
+        topPostsContainerEl?.classList.add('hidden');
+        authorsContainerEl?.classList.add('hidden');
+        searchesContainerEl?.classList.add('hidden');
+
+        const response = await fetch(`/api/analytics/platform?days=${currentPeriod}`, {
+          credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to load analytics');
+        }
+
+        const data = await response.json();
+        
+        loadingEl?.classList.add('hidden');
+
+        // Update total counts
+        document.getElementById('total-users')!.textContent = data.totals.users.toLocaleString();
+        document.getElementById('total-posts')!.textContent = data.totals.posts.toLocaleString();
+        document.getElementById('total-comments')!.textContent = data.totals.comments.toLocaleString();
+        document.getElementById('total-likes')!.textContent = data.totals.likes.toLocaleString();
+        document.getElementById('new-users')!.textContent = `+${data.period.newUsers} this period`;
+        document.getElementById('new-posts')!.textContent = `+${data.period.newPosts} this period`;
+        totalsEl?.classList.remove('hidden');
+
+        // Update activity stats
+        document.getElementById('active-users')!.textContent = data.period.activeUsers.toLocaleString();
+        document.getElementById('active-sessions')!.textContent = data.period.activeSessions.toLocaleString();
+        document.getElementById('total-events')!.textContent = data.events.total.toLocaleString();
+        activityEl?.classList.remove('hidden');
+
+        // Create activity chart
+        const sortedDays = Object.entries(data.events.byDay || {})
+          .sort(([a], [b]) => a.localeCompare(b));
+        
+        const activityCanvas = document.getElementById('activity-chart') as HTMLCanvasElement;
+        if (activityCanvas && sortedDays.length > 0) {
+          new (window as any).Chart(activityCanvas, {
+            type: 'line',
+            data: {
+              labels: sortedDays.map(([day]) => {
+                const date = new Date(day);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }),
+              datasets: [{
+                label: 'Events',
+                data: sortedDays.map(([, count]) => count),
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: {
+                  display: false
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    precision: 0
+                  }
+                }
+              }
+            }
+          });
+          chartContainerEl?.classList.remove('hidden');
+        }
+
+        // Create events chart
+        const eventsCanvas = document.getElementById('events-chart') as HTMLCanvasElement;
+        if (eventsCanvas && data.events.byType) {
+          const eventTypes = Object.entries(data.events.byType);
+          new (window as any).Chart(eventsCanvas, {
+            type: 'doughnut',
+            data: {
+              labels: eventTypes.map(([type]) => type.charAt(0).toUpperCase() + type.slice(1)),
+              datasets: [{
+                data: eventTypes.map(([, count]) => count),
+                backgroundColor: [
+                  'rgb(59, 130, 246)',
+                  'rgb(239, 68, 68)',
+                  'rgb(34, 197, 94)',
+                  'rgb(168, 85, 247)',
+                  'rgb(251, 146, 60)',
+                  'rgb(236, 72, 153)'
+                ]
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true
+            }
+          });
+          eventsContainerEl?.classList.remove('hidden');
+        }
+
+        // Populate top posts table
+        const topPostsBody = document.getElementById('top-posts-body');
+        if (topPostsBody && data.topPosts && data.topPosts.length > 0) {
+          topPostsBody.innerHTML = data.topPosts.map((post: any) => `
+            <tr>
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">
+                  <a href="/post/${post.slug}" class="hover:text-emerald-600">${post.title || 'Untitled'}</a>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${post.author}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${post.views.toLocaleString()}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${post.likes.toLocaleString()}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${post.comments.toLocaleString()}</td>
+            </tr>
+          `).join('');
+          topPostsContainerEl?.classList.remove('hidden');
+        }
+
+        // Populate trending authors table
+        const authorsBody = document.getElementById('authors-body');
+        if (authorsBody && data.trendingAuthors && data.trendingAuthors.length > 0) {
+          authorsBody.innerHTML = data.trendingAuthors.map((author: any) => `
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${author.name}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${author.posts}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${author.views.toLocaleString()}</td>
+            </tr>
+          `).join('');
+          authorsContainerEl?.classList.remove('hidden');
+        }
+
+        // Display popular searches
+        const searchesList = document.getElementById('searches-list');
+        if (searchesList && data.popularSearches && data.popularSearches.length > 0) {
+          searchesList.innerHTML = data.popularSearches.map((search: any) => `
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-900">"${search.query}"</span>
+              <span class="text-sm text-gray-600">${search.count} searches</span>
+            </div>
+          `).join('');
+          searchesContainerEl?.classList.remove('hidden');
+        }
+
+      } catch (error) {
+        console.error('Error loading analytics:', error);
+        loadingEl?.classList.add('hidden');
+        errorEl?.classList.remove('hidden');
+      }
+    }
+
+    // Load on page load
+    loadAnalytics();
+
+    // Period selector
+    const periodSelect = document.getElementById('period') as HTMLSelectElement;
+    periodSelect?.addEventListener('change', (e) => {
+      currentPeriod = parseInt((e.target as HTMLSelectElement).value);
+      loadAnalytics();
+    });
+  </script>
+</Layout>

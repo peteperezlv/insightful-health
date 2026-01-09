@@ -1,0 +1,162 @@
+---
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import { listPosts } from '../lib/posts';
+
+// Fetch only published posts for public view
+let posts: any[] = [];
+
+try {
+  const result = await listPosts({
+    page: 1,
+    perPage: 20,
+    status: 'published',
+    sort: '-created',
+  });
+  posts = result.success ? result.posts || [] : [];
+} catch (error) {
+  console.error('Failed to load posts:', error);
+}
+---
+
+<Layout title="All Posts" description="Browse all health insights articles">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="mb-4">All Posts</h1>
+    <p class="text-gray-600 mb-8">
+      Browse our collection of health insights and data analytics articles.
+    </p>
+
+    <!-- Sidebar with filters -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <!-- Filters Sidebar -->
+      <aside class="lg:col-span-1">
+        <div class="sticky top-20">
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-4">Categories</h3>
+            <ul class="space-y-2">
+              <li>
+                <label class="flex items-center"
+                  ><input type="checkbox" class="mr-2" /> Data Analytics</label>
+              </li>
+              <li>
+                <label class="flex items-center"
+                  ><input type="checkbox" class="mr-2" /> Disease Trends</label>
+              </li>
+              <li>
+                <label class="flex items-center"
+                  ><input type="checkbox" class="mr-2" /> Policy</label>
+              </li>
+              <li>
+                <label class="flex items-center"
+                  ><input type="checkbox" class="mr-2" /> Research</label>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-4">Tags</h3>
+            <div class="flex flex-wrap gap-2">
+              <span
+                class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm cursor-pointer hover:bg-emerald-200"
+                >COVID-19</span
+              >
+              <span
+                class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm cursor-pointer hover:bg-emerald-200"
+                >Healthcare</span
+              >
+              <span
+                class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm cursor-pointer hover:bg-emerald-200"
+                >Statistics</span
+              >
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Posts Grid -->
+      <section class="lg:col-span-3">
+        {
+          posts.length === 0 ? (
+            <div class="text-center py-12">
+              <p class="text-gray-500 text-lg">
+                No published posts yet. Check back soon!
+              </p>
+            </div>
+          ) : (
+            <div class="space-y-6">
+              {posts.map((post) => (
+                <article class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div class="flex justify-between items-start gap-4 mb-3">
+                    <h3>
+                      <a
+                        href={`/post/${post.slug}`}
+                        class="hover:text-emerald-600"
+                      >
+                        {post.title}
+                      </a>
+                    </h3>
+                    <span class="text-sm text-gray-500">
+                      {new Date(
+                        post.publishedAt || post.created
+                      ).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  {post.excerpt && (
+                    <p class="text-gray-600 mb-4">{post.excerpt}</p>
+                  )}
+                  {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2 mb-4">
+                      {post.tags.map((tag: string) => (
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>By {post.authorName || 'Anonymous'}</span>
+                    <a
+                      href={`/post/${post.slug}`}
+                      class="text-emerald-600 font-medium hover:text-emerald-700"
+                    >
+                      Read →
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )
+        }
+      </section>
+
+      <!-- Pagination -->
+      <nav class="mt-12 flex justify-center gap-2">
+        <button
+          class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+          >Previous</button
+        >
+        <button
+          class="px-4 py-2 border border-emerald-600 bg-emerald-50 text-emerald-600 rounded"
+          >1</button
+        >
+        <button
+          class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+          >2</button
+        >
+        <button
+          class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+          >3</button
+        >
+        <button
+          class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+          >Next</button
+        >
+      </nav>
+    </div>
+  </div>
+</Layout>

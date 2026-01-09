@@ -1,0 +1,346 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { getPostBySlug } from '../../lib/posts';
+import { isAdmin } from '../../lib/session';
+import { getPocketBase } from '../../lib/pocketbase';
+import CommentForm from '../../components/CommentForm.astro';
+import CommentList from '../../components/CommentList.astro';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/404');
+}
+
+const result = await getPostBySlug(slug);
+
+if (!result.success || !result.post) {
+  return Astro.redirect('/404');
+}
+
+const post = result.post;
+
+// Check if post is published or if user is authorized to view draft
+const user = Astro.locals.user;
+const canViewDraft = user && (post.authorId === user.id || isAdmin(user));
+
+// Redirect to 404 if post is not published and user is not authorized
+if (post.status !== 'published' && !canViewDraft) {
+  return Astro.redirect('/404');
+}
+
+// Calculate reading time (rough estimate: 200 words per minute)
+const wordCount = post.content ? post.content.split(/\s+/).length : 0;
+const readingTime = Math.ceil(wordCount / 200) || 1;
+
+// Prepare SEO data
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://insightfulhealth.com';
+const postUrl = `${siteUrl}/post/${post.slug}`;
+const seoTitle = post.seoTitle || post.title;
+const seoDescription = post.seoDescription || post.excerpt || (post.content ? post.content.substring(0, 160) : '');
+const ogImage = post.featuredImageUrl || post.ogImageUrl || `${siteUrl}/og-image.jpg`;
+const canonicalUrl = post.canonicalUrl || postUrl;
+const keywords = Array.isArray(post.seoKeywords) ? post.seoKeywords.join(', ') : (post.seoKeywords || '');
+
+// Structured data for SEO (JSON-LD)
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description: seoDescription,
+  image: ogImage,
+  datePublished: post.publishedAt || post.created,
+  dateModified: post.updated,
+  author: {
+    '@type': 'Person',
+    name: post.authorName || 'Anonymous'
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Insightful Health',
+    logo: {
+      '@type': 'ImageObject',
+      url: `${siteUrl}/logo.png`
+    }
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': postUrl
+  },
+  wordCount: wordCount,
+  keywords: keywords
+};
+---
+
+<Layout
+  title={seoTitle}
+  description={seoDescription}
+  canonical={canonicalUrl}
+  ogImage={ogImage}
+  keywords={keywords}
+  ogTitle={post.ogTitle || seoTitle}
+  ogDescription={post.ogDescription || seoDescription}
+  url={postUrl}
+>
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Draft Indicator (only visible to authorized users) -->
+    {post.status === 'draft' && canViewDraft && (
+      <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p class="text-yellow-800 font-medium">
+          ⚠️ This is a draft post. Only you can see it.
+        </p>
+      </div>
+    )}
+
+    <!-- Post Header -->
+    <header class="mb-12 border-b border-gray-200 pb-8">
+      {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
+        <div class="mb-4 flex gap-2 flex-wrap">
+          {post.tags.map((tag) => (
+            <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <h1 class="mb-4">{post.title}</h1>
+
+      <div class="flex flex-wrap gap-6 text-sm text-gray-600">
+        <div>
+          <span class="font-semibold text-gray-900">{post.authorName || 'Anonymous'}</span>
+        </div>
+        <div>
+          <span class="font-semibold text-gray-900">Published</span>
+          <p class="text-xs">{new Date(post.publishedAt || post.created).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+        </div>
+        <div>
+          <span class="font-semibold text-gray-900">Reading Time</span>
+          <p class="text-xs">{readingTime} minute{readingTime !== 1 ? 's' : ''}</p>
+        </div>
+        {post.viewCount !== undefined && (
+          <div>
+            <span class="font-semibold text-gray-900">Views</span>
+            <p class="text-xs">{post.viewCount.toLocaleString()}</p>
+          </div>
+        )}
+      </div>
+    </header>
+
+    <!-- Post Content -->
+    <section class="prose prose-lg max-w-none mb-12">
+      <div set:html={post.content} />
+    </section>
+
+    <!-- Post Metadata -->
+    <section class="mb-12 bg-emerald-50 rounded-lg p-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <h4 class="text-sm font-semibold text-gray-600 mb-2">Likes</h4>
+          <div class="flex items-center gap-2">
+            <button
+              id="like-button"
+              data-post-id={post.id}
+              class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
+            >
+              👍 <span id="like-count">{post.likeCount || 0}</span>
+            </button>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-gray-600 mb-2">Comments</h4>
+          <span class="text-2xl font-bold text-emerald-600">{post.commentCount || 0}</span>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-gray-600 mb-2">Share</h4>
+          <button
+            id="share-button"
+            class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >Share</button
+          >
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-gray-600 mb-2">Tags</h4>
+          <div class="flex flex-wrap gap-1">
+            {post.tags && Array.isArray(post.tags) && post.tags.length > 0 ? (
+              post.tags.map((tag: string) => (
+                <a
+                  href={`/tag/${tag.toLowerCase().replace(/\s+/g, '-')}`}
+                  class="px-2 py-1 bg-white border border-gray-300 rounded text-xs hover:bg-gray-50"
+                >
+                  {tag}
+                </a>
+              ))
+            ) : (
+              <span class="text-xs text-gray-500">No tags</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Author Bio -->
+    <section class="mb-12 border-y border-gray-200 py-8">
+      <div class="flex gap-4">
+        <div
+          class="w-16 h-16 bg-emerald-600 rounded-full flex-shrink-0 flex items-center justify-center text-white text-2xl font-bold"
+        >
+          {post.authorName ? post.authorName.substring(0, 2).toUpperCase() : 'A'}
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">{post.authorName || 'Anonymous'}</h3>
+          <p class="text-gray-600 text-sm mb-3">
+            Author of this article.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comments Section -->
+    <section class="mb-12">
+      <CommentForm postId={post.id} />
+      <CommentList postId={post.id} />
+    </section>
+
+  </article>
+
+  <!-- Pass postId to client-side scripts -->
+  <script define:vars={{ postId: post.id }}>
+    // Make postId available globally for the module script
+    window.__POST_ID__ = postId;
+  </script>
+
+  <!-- Main client-side script -->
+  <script>
+    import { trackPageView, trackLike } from '../../lib/analytics';
+    
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', () => {
+      const postId = window.__POST_ID__;
+      
+      // Track page view for this post
+      console.log('[Post Page] Tracking page view with postId:', postId);
+      if (postId) {
+        trackPageView(postId);
+      }
+      
+      const likeButton = document.getElementById('like-button');
+      const likeCount = document.getElementById('like-count');
+      
+      if (likeButton && likeCount) {
+        let isLiked = false;
+        let isLoading = false;
+
+        // Check if already liked on page load
+        async function checkLikeStatus() {
+          try {
+            const response = await fetch(`/api/likes/check?postId=${postId}`);
+            if (response.ok) {
+              const data = await response.json();
+              isLiked = data.isLiked;
+              updateButtonState();
+            }
+          } catch (error) {
+            console.error('Error checking like status:', error);
+          }
+        }
+
+        function updateButtonState() {
+          if (isLiked) {
+            likeButton.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-700');
+            likeButton.classList.remove('border-gray-300');
+          } else {
+            likeButton.classList.remove('bg-emerald-100', 'border-emerald-500', 'text-emerald-700');
+            likeButton.classList.add('border-gray-300');
+          }
+        }
+
+        likeButton.addEventListener('click', async () => {
+          if (isLoading) return;
+
+          isLoading = true;
+          likeButton.disabled = true;
+
+          try {
+            if (isLiked) {
+              // Unlike
+              const response = await fetch(`/api/likes?postId=${postId}`, {
+                method: 'DELETE',
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                isLiked = false;
+                likeCount.textContent = data.likeCount;
+                updateButtonState();
+              } else {
+                alert(data.error || 'Failed to unlike post');
+              }
+            } else {
+              // Like
+              const response = await fetch('/api/likes', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ postId }),
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                isLiked = true;
+                likeCount.textContent = data.likeCount;
+                updateButtonState();
+                
+                // Track like event
+                trackLike(postId);
+                
+                // Add animation
+                likeButton.classList.add('scale-110');
+                setTimeout(() => {
+                  likeButton.classList.remove('scale-110');
+                }, 200);
+              } else {
+                if (data.alreadyLiked) {
+                  isLiked = true;
+                  updateButtonState();
+                }
+                alert(data.error || 'Failed to like post');
+              }
+            }
+          } catch (error) {
+            console.error('Like error:', error);
+            alert('An error occurred. Please try again.');
+          } finally {
+            isLoading = false;
+            likeButton.disabled = false;
+          }
+        });
+
+        // Check like status on load
+        checkLikeStatus();
+      }
+    });
+  </script>
+
+  <style>
+    #like-button {
+      transition: all 0.2s ease-in-out;
+    }
+
+    #like-button:hover {
+      transform: scale(1.05);
+    }
+
+    #like-button.scale-110 {
+      transform: scale(1.1);
+    }
+  </style>
+</Layout>

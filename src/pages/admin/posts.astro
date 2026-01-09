@@ -1,0 +1,783 @@
+---
+/**
+ * Admin Post Management Page
+ * Manage all blog posts - filter, search, bulk actions, feature posts
+ */
+
+import Layout from '../../layouts/Layout.astro';
+import { getCurrentSession } from '../../lib/session';
+import { getPocketBase } from '../../lib/pocketbase';
+
+export const prerender = false;
+
+const user = await getCurrentSession(Astro.cookies);
+
+// Check if user is admin
+if (!user || user.role !== 'admin') {
+  return Astro.redirect('/403');
+}
+
+// Get filters from URL
+const url = new URL(Astro.request.url);
+const statusFilter = url.searchParams.get('status') || 'all';
+const categoryFilter = url.searchParams.get('category') || 'all';
+const searchQuery = url.searchParams.get('search') || '';
+const sortBy = url.searchParams.get('sort') || 'newest';
+const page = parseInt(url.searchParams.get('page') || '1');
+const perPage = 50;
+
+const pb = getPocketBase();
+
+// Fetch categories for filter dropdown
+const categories = await pb.collection('categories').getFullList({
+  sort: 'name',
+});
+
+// Build filter query
+let filters: string[] = [];
+
+if (statusFilter !== 'all') {
+  filters.push(`status = "${statusFilter}"`);
+}
+
+if (categoryFilter !== 'all') {
+  filters.push(`categoryId = "${categoryFilter}"`);
+}
+
+if (searchQuery) {
+  filters.push(`title ~ "${searchQuery}"`);
+}
+
+const filter = filters.length > 0 ? filters.join(' && ') : '';
+
+// Build sort query
+let sort = '-created';
+switch (sortBy) {
+  case 'oldest':
+    sort = 'created';
+    break;
+  case 'title':
+    sort = 'title';
+    break;
+  case 'views':
+    sort = '-viewCount';
+    break;
+  case 'likes':
+    sort = '-likeCount';
+    break;
+  case 'newest':
+  default:
+    sort = '-created';
+}
+
+// Fetch posts with pagination
+const posts = await pb.collection('posts').getList(page, perPage, {
+  filter,
+  sort,
+  expand: 'authorId,categoryId',
+});
+
+// Get stats
+const totalPosts = posts.totalItems;
+const draftCount = await pb.collection('posts').getList(1, 1, { filter: 'status = "draft"' });
+const publishedCount = await pb.collection('posts').getList(1, 1, { filter: 'status = "published"' });
+const deletedCount = await pb.collection('posts').getList(1, 1, { filter: 'status = "deleted"' });
+const featuredCount = await pb.collection('posts').getList(1, 1, { filter: 'isFeatured = true && status = "published"' });
+---
+
+<Layout title="Post Management - Admin - Insightful Health">
+  <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Post Management</h1>
+          <p class="mt-2 text-sm text-gray-600">
+            Manage all blog posts, moderate content, and feature posts.
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <a
+            href="/admin"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Dashboard
+          </a>
+          <a
+            href="/dashboard/create-post"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create New Post
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-lg shadow">
+        <p class="text-xs text-gray-500 uppercase">Total Posts</p>
+        <p class="text-2xl font-semibold text-gray-900">{totalPosts}</p>
+      </div>
+      <div class="bg-yellow-50 p-4 rounded-lg shadow">
+        <p class="text-xs text-yellow-600 uppercase">Drafts</p>
+        <p class="text-2xl font-semibold text-yellow-700">{draftCount.totalItems}</p>
+      </div>
+      <div class="bg-emerald-50 p-4 rounded-lg shadow">
+        <p class="text-xs text-emerald-600 uppercase">Published</p>
+        <p class="text-2xl font-semibold text-emerald-700">{publishedCount.totalItems}</p>
+      </div>
+      <div class="bg-purple-50 p-4 rounded-lg shadow">
+        <p class="text-xs text-purple-600 uppercase">Featured</p>
+        <p class="text-2xl font-semibold text-purple-700">{featuredCount.totalItems}</p>
+      </div>
+      <div class="bg-red-50 p-4 rounded-lg shadow">
+        <p class="text-xs text-red-600 uppercase">Deleted</p>
+        <p class="text-2xl font-semibold text-red-700">{deletedCount.totalItems}</p>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="bg-white rounded-lg shadow mb-6 p-6">
+      <form method="get" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Search -->
+          <div class="md:col-span-2">
+            <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
+              Search Posts
+            </label>
+            <input
+              type="text"
+              id="search"
+              name="search"
+              value={searchQuery}
+              placeholder="Search by title..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+
+          <!-- Status Filter -->
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="all" selected={statusFilter === 'all'}>All Status</option>
+              <option value="draft" selected={statusFilter === 'draft'}>Draft</option>
+              <option value="published" selected={statusFilter === 'published'}>Published</option>
+              <option value="deleted" selected={statusFilter === 'deleted'}>Deleted</option>
+            </select>
+          </div>
+
+          <!-- Category Filter -->
+          <div>
+            <label for="category" class="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="all" selected={categoryFilter === 'all'}>All Categories</option>
+              {categories.map((cat) => (
+                <option value={cat.id} selected={categoryFilter === cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <!-- Sort and Actions -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <label for="sort" class="text-sm font-medium text-gray-700">
+              Sort by:
+            </label>
+            <select
+              id="sort"
+              name="sort"
+              class="px-3 py-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="newest" selected={sortBy === 'newest'}>Newest First</option>
+              <option value="oldest" selected={sortBy === 'oldest'}>Oldest First</option>
+              <option value="title" selected={sortBy === 'title'}>Title (A-Z)</option>
+              <option value="views" selected={sortBy === 'views'}>Most Views</option>
+              <option value="likes" selected={sortBy === 'likes'}>Most Likes</option>
+            </select>
+          </div>
+
+          <div class="flex gap-2">
+            <button
+              type="submit"
+              class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              Apply Filters
+            </button>
+            <a
+              href="/admin/posts"
+              class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              Clear Filters
+            </a>
+          </div>
+        </div>
+      </form>
+
+      <!-- Bulk Actions -->
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <input
+              type="checkbox"
+              id="selectAll"
+              class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+            />
+            <label for="selectAll" class="text-sm font-medium text-gray-700">
+              Select All (<span id="selectedCount">0</span> selected)
+            </label>
+          </div>
+
+          <div class="flex gap-2">
+            <button
+              id="bulkPublish"
+              disabled
+              class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Publish Selected
+            </button>
+            <button
+              id="bulkFeature"
+              disabled
+              class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Feature Selected
+            </button>
+            <button
+              id="bulkUnfeature"
+              disabled
+              class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Unfeature Selected
+            </button>
+            <button
+              id="bulkDelete"
+              disabled
+              class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Delete Selected
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Posts Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="w-12 px-6 py-3">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                  id="selectAllHeader"
+                />
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Post
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Author
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Category
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stats
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {posts.items.length === 0 ? (
+              <tr>
+                <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <p class="mt-2 text-sm">No posts found. Try adjusting your filters.</p>
+                </td>
+              </tr>
+            ) : (
+              posts.items.map((post) => (
+                <tr class="hover:bg-gray-50" data-post-id={post.id}>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      class="post-checkbox h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                      data-post-id={post.id}
+                    />
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-start">
+                      {post.featuredImageUrl && (
+                        <img
+                          src={post.featuredImageUrl}
+                          alt=""
+                          class="w-16 h-16 rounded object-cover mr-3"
+                        />
+                      )}
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                          <a
+                            href={`/dashboard/edit-post/${post.id}`}
+                            class="text-sm font-medium text-gray-900 hover:text-emerald-600"
+                          >
+                            {post.title}
+                          </a>
+                          {post.isFeatured && (
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                              </svg>
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {post.excerpt || 'No excerpt available'}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">
+                      {post.expand?.authorId?.fullName || 'Unknown'}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      @{post.expand?.authorId?.username || 'unknown'}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm text-gray-900">
+                      {post.expand?.categoryId?.name || 'Uncategorized'}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {post.status === 'published' && (
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                        Published
+                      </span>
+                    )}
+                    {post.status === 'draft' && (
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Draft
+                      </span>
+                    )}
+                    {post.status === 'deleted' && (
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Deleted
+                      </span>
+                    )}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        {post.viewCount}
+                      </div>
+                      <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                        {post.likeCount}
+                      </div>
+                      <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        {post.commentCount}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div>
+                      {new Date(post.created).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </div>
+                    {post.publishedAt && (
+                      <div class="text-xs text-gray-400">
+                        Pub: {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </div>
+                    )}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex justify-end gap-2">
+                      <!-- View Analytics -->
+                      <a
+                        href={`/admin/analytics?post=${post.id}`}
+                        class="text-blue-600 hover:text-blue-900"
+                        title="View Analytics"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                      </a>
+
+                      <!-- Edit -->
+                      <a
+                        href={`/dashboard/edit-post/${post.id}`}
+                        class="text-emerald-600 hover:text-emerald-900"
+                        title="Edit Post"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                      </a>
+
+                      <!-- Feature/Unfeature -->
+                      <button
+                        class="feature-toggle text-purple-600 hover:text-purple-900"
+                        data-post-id={post.id}
+                        data-featured={post.isFeatured}
+                        title={post.isFeatured ? 'Unfeature Post' : 'Feature Post'}
+                      >
+                        <svg class="w-5 h-5" fill={post.isFeatured ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                      </button>
+
+                      <!-- View Post -->
+                      {post.status === 'published' && (
+                        <a
+                          href={`/post/${post.slug}`}
+                          target="_blank"
+                          class="text-gray-600 hover:text-gray-900"
+                          title="View Post"
+                        >
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                          </svg>
+                        </a>
+                      )}
+
+                      <!-- Delete -->
+                      <button
+                        class="delete-post text-red-600 hover:text-red-900"
+                        data-post-id={post.id}
+                        data-post-title={post.title}
+                        title="Delete Post"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    {posts.totalPages > 1 && (
+      <div class="mt-6 flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+          Showing <span class="font-medium">{(page - 1) * perPage + 1}</span> to{' '}
+          <span class="font-medium">{Math.min(page * perPage, totalPosts)}</span> of{' '}
+          <span class="font-medium">{totalPosts}</span> posts
+        </div>
+        <div class="flex gap-2">
+          {page > 1 && (
+            <a
+              href={`?page=${page - 1}&status=${statusFilter}&category=${categoryFilter}&search=${searchQuery}&sort=${sortBy}`}
+              class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Previous
+            </a>
+          )}
+          {page < posts.totalPages && (
+            <a
+              href={`?page=${page + 1}&status=${statusFilter}&category=${categoryFilter}&search=${searchQuery}&sort=${sortBy}`}
+              class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Next
+            </a>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- Client-side JavaScript -->
+  <script>
+    // Track selected posts
+    let selectedPosts = new Set<string>();
+
+    // Update selected count and button states
+    function updateBulkActions() {
+      const count = selectedPosts.size;
+      const selectedCountEl = document.getElementById('selectedCount');
+      if (selectedCountEl) {
+        selectedCountEl.textContent = count.toString();
+      }
+
+      const bulkButtons = [
+        document.getElementById('bulkPublish'),
+        document.getElementById('bulkFeature'),
+        document.getElementById('bulkUnfeature'),
+        document.getElementById('bulkDelete'),
+      ];
+
+      bulkButtons.forEach((btn) => {
+        if (btn) {
+          (btn as HTMLButtonElement).disabled = count === 0;
+        }
+      });
+    }
+
+    // Handle individual checkbox
+    document.querySelectorAll('.post-checkbox').forEach((checkbox) => {
+      checkbox.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        const postId = target.dataset.postId;
+        if (postId) {
+          if (target.checked) {
+            selectedPosts.add(postId);
+          } else {
+            selectedPosts.delete(postId);
+          }
+          updateBulkActions();
+        }
+      });
+    });
+
+    // Handle select all
+    const selectAllCheckboxes = [
+      document.getElementById('selectAll'),
+      document.getElementById('selectAllHeader'),
+    ];
+
+    selectAllCheckboxes.forEach((selectAll) => {
+      selectAll?.addEventListener('change', (e) => {
+        const checked = (e.target as HTMLInputElement).checked;
+        document.querySelectorAll('.post-checkbox').forEach((checkbox) => {
+          const cb = checkbox as HTMLInputElement;
+          cb.checked = checked;
+          const postId = cb.dataset.postId;
+          if (postId) {
+            if (checked) {
+              selectedPosts.add(postId);
+            } else {
+              selectedPosts.delete(postId);
+            }
+          }
+        });
+
+        // Sync both select-all checkboxes
+        selectAllCheckboxes.forEach((box) => {
+          if (box && box !== e.target) {
+            (box as HTMLInputElement).checked = checked;
+          }
+        });
+
+        updateBulkActions();
+      });
+    });
+
+    // Feature/Unfeature toggle
+    document.querySelectorAll('.feature-toggle').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const postId = btn.dataset.postId;
+        const isFeatured = btn.dataset.featured === 'true';
+
+        if (!postId) return;
+
+        try {
+          const response = await fetch('/api/admin/posts/feature', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId, featured: !isFeatured }),
+          });
+
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            const error = await response.json();
+            alert(error.message || 'Failed to update post');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('An error occurred');
+        }
+      });
+    });
+
+    // Delete post
+    document.querySelectorAll('.delete-post').forEach((button) => {
+      button.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const postId = btn.dataset.postId;
+        const postTitle = btn.dataset.postTitle;
+
+        if (!postId) return;
+
+        if (!confirm(`Are you sure you want to delete "${postTitle}"?`)) {
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/admin/posts/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId }),
+          });
+
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            const error = await response.json();
+            alert(error.message || 'Failed to delete post');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('An error occurred');
+        }
+      });
+    });
+
+    // Bulk publish
+    document.getElementById('bulkPublish')?.addEventListener('click', async () => {
+      if (selectedPosts.size === 0) return;
+
+      if (!confirm(`Publish ${selectedPosts.size} post(s)?`)) return;
+
+      try {
+        const response = await fetch('/api/admin/posts/bulk-publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postIds: Array.from(selectedPosts) }),
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Failed to publish posts');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+      }
+    });
+
+    // Bulk feature
+    document.getElementById('bulkFeature')?.addEventListener('click', async () => {
+      if (selectedPosts.size === 0) return;
+
+      if (!confirm(`Feature ${selectedPosts.size} post(s)?`)) return;
+
+      try {
+        const response = await fetch('/api/admin/posts/bulk-feature', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postIds: Array.from(selectedPosts), featured: true }),
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Failed to feature posts');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+      }
+    });
+
+    // Bulk unfeature
+    document.getElementById('bulkUnfeature')?.addEventListener('click', async () => {
+      if (selectedPosts.size === 0) return;
+
+      if (!confirm(`Unfeature ${selectedPosts.size} post(s)?`)) return;
+
+      try {
+        const response = await fetch('/api/admin/posts/bulk-feature', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postIds: Array.from(selectedPosts), featured: false }),
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Failed to unfeature posts');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+      }
+    });
+
+    // Bulk delete
+    document.getElementById('bulkDelete')?.addEventListener('click', async () => {
+      if (selectedPosts.size === 0) return;
+
+      if (!confirm(`Are you sure you want to delete ${selectedPosts.size} post(s)? This action cannot be undone.`)) return;
+
+      try {
+        const response = await fetch('/api/admin/posts/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postIds: Array.from(selectedPosts) }),
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Failed to delete posts');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+      }
+    });
+  </script>
+</Layout>

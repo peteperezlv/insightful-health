@@ -1,0 +1,366 @@
+---
+/**
+ * Confirmation Dialog Component
+ * Shows modal dialogs for destructive actions
+ */
+
+export interface Props {
+  id: string;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: 'danger' | 'warning' | 'info';
+}
+
+const {
+  id,
+  title,
+  message,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  variant = 'danger',
+} = Astro.props;
+
+const variantClasses = {
+  danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+  warning: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
+  info: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+};
+
+const confirmButtonClass = variantClasses[variant];
+---
+
+<!-- Dialog backdrop and container -->
+<div
+  id={id}
+  class="confirmation-dialog hidden fixed inset-0 z-50 overflow-y-auto"
+  aria-labelledby={`${id}-title`}
+  role="dialog"
+  aria-modal="true"
+>
+  <!-- Backdrop -->
+  <div class="dialog-backdrop"></div>
+
+  <!-- Dialog panel -->
+  <div class="dialog-container">
+    <div class="dialog-content">
+      <!-- Icon -->
+      <div class="dialog-icon-container">
+        {variant === 'danger' && (
+          <svg
+            class="dialog-icon text-red-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        )}
+        {variant === 'warning' && (
+          <svg
+            class="dialog-icon text-yellow-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        )}
+        {variant === 'info' && (
+          <svg
+            class="dialog-icon text-blue-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        )}
+      </div>
+
+      <!-- Content -->
+      <div class="dialog-text">
+        <h3 class="dialog-title" id={`${id}-title`}>{title}</h3>
+        <p class="dialog-message">{message}</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="dialog-actions">
+        <button type="button" class={`dialog-confirm ${confirmButtonClass}`} data-confirm>
+          {confirmText}
+        </button>
+        <button type="button" class="dialog-cancel" data-cancel>
+          {cancelText}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .confirmation-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow-y: auto;
+  }
+
+  .dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgb(107 114 128 / 0.75);
+    transition-property: opacity;
+  }
+
+  .dialog-container {
+    display: flex;
+    min-height: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  @media (min-width: 640px) {
+    .dialog-container {
+      padding: 0;
+    }
+  }
+
+  .dialog-content {
+    position: relative;
+    transform: none;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background-color: white;
+    text-align: left;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    transition-property: all;
+  }
+
+  @media (min-width: 640px) {
+    .dialog-content {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 32rem;
+    }
+  }
+
+  .dialog-icon-container {
+    margin: 1.25rem 0 0 1.25rem;
+    display: flex;
+    height: 3rem;
+    width: 3rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: rgb(254 226 226);
+  }
+
+  @media (min-width: 640px) {
+    .dialog-icon-container {
+      margin: 1.25rem 0 0 1.25rem;
+      height: 2.5rem;
+      width: 2.5rem;
+    }
+  }
+
+  .dialog-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+
+  .dialog-text {
+    margin-top: 0.75rem;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .dialog-text {
+      margin-left: 1rem;
+      margin-top: 0;
+      text-align: left;
+    }
+  }
+
+  .dialog-title {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: rgb(17 24 39);
+  }
+
+  .dialog-message {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: rgb(107 114 128);
+  }
+
+  .dialog-actions {
+    background-color: rgb(249 250 251);
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .dialog-actions {
+      display: flex;
+      flex-direction: row-reverse;
+      padding: 0.75rem 1.5rem;
+    }
+  }
+
+  .dialog-confirm {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-duration: 150ms;
+  }
+
+  .dialog-confirm:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+  }
+
+  @media (min-width: 640px) {
+    .dialog-confirm {
+      margin-left: 0.75rem;
+      width: auto;
+    }
+  }
+
+  .dialog-cancel {
+    margin-top: 0.75rem;
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    border-radius: 0.375rem;
+    background-color: white;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    color: rgb(17 24 39);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    border: 1px solid rgb(209 213 219);
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-duration: 150ms;
+  }
+
+  .dialog-cancel:hover {
+    background-color: rgb(249 250 251);
+  }
+
+  .dialog-cancel:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(16 185 129);
+  }
+
+  @media (min-width: 640px) {
+    .dialog-cancel {
+      margin-top: 0;
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  // Confirmation dialog functionality
+  class ConfirmationDialog {
+    private dialog: HTMLElement;
+    private resolveCallback: ((value: boolean) => void) | null = null;
+
+    constructor(dialogId: string) {
+      const dialog = document.getElementById(dialogId);
+      if (!dialog) {
+        throw new Error(`Dialog with id "${dialogId}" not found`);
+      }
+      this.dialog = dialog;
+      this.setupEventListeners();
+    }
+
+    private setupEventListeners() {
+      // Confirm button
+      const confirmBtn = this.dialog.querySelector('[data-confirm]');
+      confirmBtn?.addEventListener('click', () => this.confirm());
+
+      // Cancel button
+      const cancelBtn = this.dialog.querySelector('[data-cancel]');
+      cancelBtn?.addEventListener('click', () => this.cancel());
+
+      // Backdrop click
+      const backdrop = this.dialog.querySelector('.dialog-backdrop');
+      backdrop?.addEventListener('click', () => this.cancel());
+
+      // Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !this.dialog.classList.contains('hidden')) {
+          this.cancel();
+        }
+      });
+    }
+
+    show(): Promise<boolean> {
+      this.dialog.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      return new Promise((resolve) => {
+        this.resolveCallback = resolve;
+      });
+    }
+
+    private hide() {
+      this.dialog.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    private confirm() {
+      this.hide();
+      if (this.resolveCallback) {
+        this.resolveCallback(true);
+        this.resolveCallback = null;
+      }
+    }
+
+    private cancel() {
+      this.hide();
+      if (this.resolveCallback) {
+        this.resolveCallback(false);
+        this.resolveCallback = null;
+      }
+    }
+  }
+
+  // Export to window for global access
+  (window as any).ConfirmationDialog = ConfirmationDialog;
+</script>

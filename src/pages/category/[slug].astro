@@ -1,0 +1,326 @@
+---
+/**
+ * Category Page
+ * Display all posts in a specific category
+ */
+
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getPocketBase } from '../../lib/pocketbase';
+
+const { slug } = Astro.params;
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const sort = url.searchParams.get('sort') || 'newest';
+const perPage = 20;
+
+const pb = getPocketBase();
+let category: any = null;
+let posts: any[] = [];
+let totalItems = 0;
+let totalPages = 0;
+
+// Fetch category
+try {
+  category = await pb.collection('categories').getFirstListItem(`slug="${slug}"`);
+} catch (error) {
+  console.error('Category not found:', error);
+}
+
+// Fetch posts in this category
+if (category) {
+  try {
+    let sortString = '-created';
+    switch (sort) {
+      case 'newest':
+        sortString = '-created';
+        break;
+      case 'oldest':
+        sortString = 'created';
+        break;
+      case 'views':
+        sortString = '-viewCount';
+        break;
+      case 'title':
+        sortString = 'title';
+        break;
+    }
+
+    const results = await pb.collection('posts').getList(page, perPage, {
+      filter: `status = "published" && categoryId = "${category.id}"`,
+      sort: sortString,
+      expand: 'authorId',
+    });
+
+    posts = results.items;
+    totalItems = results.totalItems;
+    totalPages = results.totalPages;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+  }
+}
+
+// Format date
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+// If category not found, return 404
+if (!category) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Category not found',
+  });
+}
+
+const metaTitle = `${category.name} | Insightful Health`;
+const metaDescription =
+  category.description ||
+  `Browse all posts in the ${category.name} category. ${totalItems} articles available.`;
+---
+
+<Layout title={metaTitle} description={metaDescription}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb Navigation -->
+    <nav class="mb-8" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-2 text-sm text-gray-500">
+        <li>
+          <a href="/" class="hover:text-emerald-600 transition-colors">Home</a>
+        </li>
+        <li>
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+              clip-rule="evenodd"></path>
+          </svg>
+        </li>
+        <li>
+          <a href="/archive" class="hover:text-emerald-600 transition-colors"
+            >Categories</a
+          >
+        </li>
+        <li>
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+              clip-rule="evenodd"></path>
+          </svg>
+        </li>
+        <li class="text-gray-900 font-medium">{category.name}</li>
+      </ol>
+    </nav>
+
+    <!-- Category Header -->
+    <div class="mb-12">
+      <div class="flex items-center gap-3 mb-4">
+        <svg
+          class="w-8 h-8 text-emerald-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+          ></path>
+        </svg>
+        <h1 class="text-4xl font-bold text-gray-900">{category.name}</h1>
+      </div>
+
+      {
+        category.description && (
+          <p class="text-lg text-gray-600">{category.description}</p>
+        )
+      }
+
+      <p class="text-sm text-gray-500 mt-2">
+        {totalItems} {totalItems === 1 ? 'post' : 'posts'}
+      </p>
+    </div>
+
+    <!-- Sort Options -->
+    <div class="mb-6 flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900">All Posts</h2>
+
+      <form method="get" class="flex items-center gap-2">
+        <label for="sort" class="text-sm font-medium text-gray-700"
+          >Sort by:</label
+        >
+        <select
+          name="sort"
+          id="sort"
+          class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+          onchange="this.form.submit()"
+        >
+          <option value="newest" selected={sort === 'newest'}
+            >Newest First</option
+          >
+          <option value="oldest" selected={sort === 'oldest'}
+            >Oldest First</option
+          >
+          <option value="views" selected={sort === 'views'}>Most Views</option>
+          <option value="title" selected={sort === 'title'}>Title A-Z</option>
+        </select>
+        {page > 1 && <input type="hidden" name="page" value={page} />}
+      </form>
+    </div>
+
+    <!-- Posts List -->
+    {
+      posts.length === 0 ? (
+        <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+          <svg
+            class="mx-auto h-16 w-16 text-gray-400 mb-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
+          <p class="text-gray-500 mb-4">
+            No posts have been published in this category yet.
+          </p>
+          <a
+            href="/archive"
+            class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+          >
+            Browse All Posts
+          </a>
+        </div>
+      ) : (
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post: any) => (
+            <article class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+              {post.featuredImage && (
+                <a href={`/posts/${post.slug}`}>
+                  <img
+                    src={post.featuredImage}
+                    alt={post.title}
+                    class="w-full h-48 object-cover"
+                  />
+                </a>
+              )}
+
+              <div class="p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                  <a
+                    href={`/posts/${post.slug}`}
+                    class="hover:text-emerald-600 transition-colors"
+                  >
+                    {post.title}
+                  </a>
+                </h3>
+
+                {post.excerpt && (
+                  <p class="text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
+                )}
+
+                <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                  {post.expand?.authorId && (
+                    <span class="flex items-center gap-1">
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      {post.expand.authorId.fullName ||
+                        post.expand.authorId.username}
+                    </span>
+                  )}
+
+                  <span class="flex items-center gap-1">
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    {formatDate(post.created)}
+                  </span>
+
+                  {post.viewCount > 0 && (
+                    <span class="flex items-center gap-1">
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      {post.viewCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )
+    }
+
+    <!-- Pagination -->
+    {
+      totalPages > 1 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={perPage}
+          baseUrl={`/category/${slug}${sort !== 'newest' ? `?sort=${sort}` : ''}`}
+        />
+      )
+    }
+  </div>
+</Layout>
+
+<style>
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

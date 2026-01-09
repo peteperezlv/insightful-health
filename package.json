@@ -1,0 +1,37 @@
+{
+  "name": "insightful-health",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@tiptap/core": "^3.14.0",
+    "@tiptap/extension-character-count": "^3.14.0",
+    "@tiptap/extension-code-block-lowlight": "^3.14.0",
+    "@tiptap/extension-horizontal-rule": "^3.14.0",
+    "@tiptap/extension-image": "^3.14.0",
+    "@tiptap/extension-link": "^3.14.0",
+    "@tiptap/extension-placeholder": "^3.14.0",
+    "@tiptap/extension-table": "^3.14.0",
+    "@tiptap/extension-table-cell": "^3.14.0",
+    "@tiptap/extension-table-header": "^3.14.0",
+    "@tiptap/extension-table-row": "^3.14.0",
+    "@tiptap/extension-text-align": "^3.14.0",
+    "@tiptap/extension-underline": "^3.14.0",
+    "@tiptap/pm": "^3.14.0",
+    "@tiptap/starter-kit": "^3.14.0",
+    "astro": "^5.16.6",
+    "isomorphic-dompurify": "^2.35.0",
+    "lowlight": "^3.3.0",
+    "pocketbase": "^0.26.5",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.3"
+  }
+}

@@ -1,0 +1,56 @@
+---
+/**
+ * Optimized Image Component
+ * Provides lazy loading, responsive images, and WebP support
+ */
+
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  sizes?: string;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  priority?: boolean;
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  class: className = '',
+  loading = 'lazy',
+  sizes = '100vw',
+  objectFit = 'cover',
+  priority = false,
+} = Astro.props;
+
+// Generate srcset for responsive images
+const generateSrcSet = (src: string): string => {
+  const widths = [320, 640, 768, 1024, 1280, 1536];
+  return widths
+    .map(w => `${src}?width=${w} ${w}w`)
+    .join(', ');
+};
+
+const srcset = generateSrcSet(src);
+const loadingAttr = priority ? 'eager' : loading;
+const fetchPriorityAttr = priority ? 'high' : 'auto';
+---
+
+<img
+  src={src}
+  alt={alt}
+  width={width}
+  height={height}
+  class={className}
+  loading={loadingAttr}
+  fetchpriority={fetchPriorityAttr}
+  srcset={srcset}
+  sizes={sizes}
+  style={`object-fit: ${objectFit};`}
+  decoding="async"
+/>

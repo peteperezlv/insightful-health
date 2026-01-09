@@ -1,0 +1,149 @@
+---
+/**
+ * Newsletter subscription form component
+ * Handles email subscription with MailerLite integration
+ */
+const { variant = 'default' } = Astro.props;
+
+interface Props {
+  variant?: 'default' | 'inline' | 'footer';
+}
+---
+
+<div 
+  class={`newsletter-form ${variant === 'default' ? 'bg-emerald-50 rounded-lg p-8 text-center' : variant === 'footer' ? 'bg-gray-800 text-white p-6 rounded-lg' : 'inline-flex gap-2'}`}
+  data-newsletter-form
+>
+  {variant !== 'inline' && (
+    <div class="mb-6">
+      <h2 class={`text-2xl font-bold mb-3 ${variant === 'footer' ? 'text-white' : 'text-gray-900'}`}>
+        Stay Informed
+      </h2>
+      <p class={`${variant === 'footer' ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
+        Subscribe to our newsletter and get the latest health insights delivered to your inbox.
+      </p>
+    </div>
+  )}
+  
+  <form 
+    class={`${variant === 'default' ? 'max-w-md mx-auto' : variant === 'footer' ? 'max-w-md mx-auto' : 'flex gap-2 w-full'}`} 
+    data-newsletter-submit
+    aria-label="Newsletter subscription form"
+  >
+    <div class={`flex gap-2 ${variant === 'inline' ? 'flex-1' : 'w-full'}`}>
+      <label for={`newsletter-email-${variant}`} class="sr-only">Email address</label>
+      <input
+        type="email"
+        name="email"
+        id={`newsletter-email-${variant}`}
+        placeholder="Enter your email"
+        autocomplete="email"
+        class={`flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px] ${variant === 'footer' ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`}
+        required
+        aria-required="true"
+        aria-describedby={`newsletter-error-${variant}`}
+      />
+      <button
+        type="submit"
+        class="px-6 py-2 bg-emerald-600 text-white font-medium rounded hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+      >
+        Subscribe
+      </button>
+    </div>
+  </form>
+
+  <!-- Success Message -->
+  <div 
+    class="hidden mt-4 p-4 bg-green-100 text-green-800 rounded-lg"
+    data-success-message
+    role="status"
+    aria-live="polite"
+  >
+    <p class="font-medium">✓ Successfully subscribed!</p>
+    <p class="text-sm mt-1">Check your email to confirm your subscription.</p>
+  </div>
+
+  <!-- Error Message -->
+  <div 
+    class="hidden mt-4 p-4 bg-red-100 text-red-800 rounded-lg"
+    data-error-message
+    id={`newsletter-error-${variant}`}
+    role="alert"
+    aria-live="assertive"
+  >
+    <p class="font-medium">✗ Subscription failed</p>
+    <p class="text-sm mt-1" data-error-text>Please try again later.</p>
+  </div>
+
+  {variant !== 'inline' && (
+    <p class={`text-xs mt-4 ${variant === 'footer' ? 'text-gray-400' : 'text-gray-500'}`}>
+      By subscribing, you agree to our <a href="/privacy" class={`underline ${variant === 'footer' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Privacy Policy</a>.
+    </p>
+  )}
+</div>
+
+<script>
+  // Newsletter form submission handling
+  document.addEventListener('astro:page-load', () => {
+    const forms = document.querySelectorAll('[data-newsletter-submit]');
+    
+    forms.forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formElement = e.target as HTMLFormElement;
+        const emailInput = formElement.querySelector('input[name="email"]') as HTMLInputElement;
+        const submitButton = formElement.querySelector('button[type="submit"]') as HTMLButtonElement;
+        const successMessage = formElement.closest('[data-newsletter-form]')?.querySelector('[data-success-message]') as HTMLElement;
+        const errorMessage = formElement.closest('[data-newsletter-form]')?.querySelector('[data-error-message]') as HTMLElement;
+        const errorText = errorMessage?.querySelector('[data-error-text]') as HTMLElement;
+        
+        if (!emailInput || !submitButton) return;
+        
+        // Disable form during submission
+        submitButton.disabled = true;
+        submitButton.textContent = 'Subscribing...';
+        
+        // Hide previous messages
+        successMessage?.classList.add('hidden');
+        errorMessage?.classList.add('hidden');
+        
+        try {
+          const response = await fetch('/api/newsletter/subscribe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: emailInput.value,
+            }),
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.success) {
+            // Show success message
+            successMessage?.classList.remove('hidden');
+            formElement.reset();
+          } else {
+            // Show error message
+            if (errorText) {
+              errorText.textContent = data.error || 'Please try again later.';
+            }
+            errorMessage?.classList.remove('hidden');
+          }
+        } catch (error) {
+          console.error('Newsletter subscription error:', error);
+          if (errorText) {
+            errorText.textContent = 'Network error. Please check your connection.';
+          }
+          errorMessage?.classList.remove('hidden');
+        } finally {
+          // Re-enable form
+          submitButton.disabled = false;
+          submitButton.textContent = 'Subscribe';
+        }
+      });
+    });
+  });
+</script>

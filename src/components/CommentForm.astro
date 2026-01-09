@@ -1,0 +1,352 @@
+---
+/**
+ * CommentForm Component
+ * Form for submitting comments (authenticated and anonymous)
+ */
+
+interface Props {
+  postId: string;
+  parentCommentId?: string;
+  onSuccess?: () => void;
+}
+
+const { postId, parentCommentId } = Astro.props;
+---
+
+<div class="comment-form bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+  <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+    {parentCommentId ? 'Reply to Comment' : 'Leave a Comment'}
+  </h3>
+
+  <!-- User status indicator -->
+  <div id="user-status" class="mb-4 hidden">
+    <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+      <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+      </svg>
+      <span>Logged in as <strong id="user-name"></strong></span>
+    </div>
+  </div>
+
+  <!-- Anonymous user fields -->
+  <div id="anonymous-fields" class="space-y-4 mb-4">
+    <div>
+      <label for="author-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Name <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        id="author-name"
+        name="authorName"
+        maxlength="100"
+        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+        placeholder="Your name"
+      />
+    </div>
+    
+    <div>
+      <label for="author-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Email <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="email"
+        id="author-email"
+        name="authorEmail"
+        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+        placeholder="your@email.com"
+      />
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        Your email will not be published
+      </p>
+    </div>
+  </div>
+
+  <!-- Comment content -->
+  <div class="mb-4">
+    <label for="comment-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      Comment <span class="text-red-500">*</span>
+    </label>
+    <textarea
+      id="comment-content"
+      name="content"
+      rows="5"
+      maxlength="5000"
+      class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-vertical"
+      placeholder="Share your thoughts..."
+    ></textarea>
+    <div class="flex justify-between items-center mt-1">
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        Maximum 5000 characters
+      </p>
+      <span id="char-count" class="text-xs text-gray-500 dark:text-gray-400">0 / 5000</span>
+    </div>
+  </div>
+
+  <!-- Rate limit info -->
+  <div id="rate-limit-info" class="mb-4 hidden">
+    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+      <p class="text-sm text-blue-700 dark:text-blue-200">
+        <span id="remaining-comments"></span> comments remaining today
+      </p>
+    </div>
+  </div>
+
+  <!-- Error message -->
+  <div id="comment-error" class="hidden mb-4">
+    <div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4">
+      <p class="text-sm text-red-700 dark:text-red-200" id="error-message"></p>
+    </div>
+  </div>
+
+  <!-- Success message -->
+  <div id="comment-success" class="hidden mb-4">
+    <div class="bg-emerald-50 dark:bg-emerald-900 border border-emerald-200 dark:border-emerald-700 rounded-lg p-4">
+      <p class="text-sm text-emerald-700 dark:text-emerald-200">
+        Comment submitted successfully! It will appear after moderation.
+      </p>
+    </div>
+  </div>
+
+  <!-- Submit button -->
+  <div class="flex items-center gap-4">
+    <button
+      type="submit"
+      id="submit-comment"
+      class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <span id="submit-text">Submit Comment</span>
+      <span id="submit-loading" class="hidden">Submitting...</span>
+    </button>
+    
+    {parentCommentId && (
+      <button
+        type="button"
+        id="cancel-reply"
+        class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
+      >
+        Cancel
+      </button>
+    )}
+  </div>
+
+  <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">
+    All comments are moderated before appearing on the site.
+  </p>
+</div>
+
+<!-- Pass postId to client-side scripts -->
+<script define:vars={{ postId, parentCommentId }}>
+  // Make postId available globally for the module script
+  window.__COMMENT_POST_ID__ = postId;
+  window.__PARENT_COMMENT_ID__ = parentCommentId;
+</script>
+
+<script>
+  import { trackComment } from '../lib/analytics';
+
+  const form = document.querySelector('.comment-form');
+  const contentTextarea = document.getElementById('comment-content');
+  const charCount = document.getElementById('char-count');
+  const submitBtn = document.getElementById('submit-comment');
+  const submitText = document.getElementById('submit-text');
+  const submitLoading = document.getElementById('submit-loading');
+  const errorDiv = document.getElementById('comment-error');
+  const errorMessage = document.getElementById('error-message');
+  const successDiv = document.getElementById('comment-success');
+  const userStatus = document.getElementById('user-status');
+  const anonymousFields = document.getElementById('anonymous-fields');
+  const rateLimitInfo = document.getElementById('rate-limit-info');
+  const remainingComments = document.getElementById('remaining-comments');
+
+  // Get postId and parentCommentId from global variables
+  const postId = window.__COMMENT_POST_ID__;
+  const parentCommentId = window.__PARENT_COMMENT_ID__;
+
+  // Character counter
+  contentTextarea.addEventListener('input', () => {
+    const count = contentTextarea.value.length;
+    charCount.textContent = `${count} / 5000`;
+    
+    if (count > 4500) {
+      charCount.classList.add('text-red-500');
+    } else {
+      charCount.classList.remove('text-red-500');
+    }
+  });
+
+  // Check if user is logged in
+  async function checkAuthStatus() {
+    try {
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          // Show user status, hide anonymous fields
+          userStatus.classList.remove('hidden');
+          anonymousFields.classList.add('hidden');
+          document.getElementById('user-name').textContent = data.user.fullName || data.user.email;
+        } else {
+          // Show anonymous fields
+          userStatus.classList.add('hidden');
+          anonymousFields.classList.remove('hidden');
+        }
+      } else {
+        userStatus.classList.add('hidden');
+        anonymousFields.classList.remove('hidden');
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      userStatus.classList.add('hidden');
+      anonymousFields.classList.remove('hidden');
+    }
+  }
+
+  // Submit comment
+  submitBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    // Hide previous messages
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    
+    const content = contentTextarea.value.trim();
+    
+    if (!content) {
+      showError('Please enter a comment');
+      return;
+    }
+    
+    if (content.length > 5000) {
+      showError('Comment is too long (maximum 5000 characters)');
+      return;
+    }
+
+    // Get anonymous fields if visible
+    let authorName, authorEmail;
+    if (!anonymousFields.classList.contains('hidden')) {
+      authorName = document.getElementById('author-name').value.trim();
+      authorEmail = document.getElementById('author-email').value.trim();
+      
+      if (!authorName || !authorEmail) {
+        showError('Name and email are required');
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(authorEmail)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+    }
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitText.classList.add('hidden');
+    submitLoading.classList.remove('hidden');
+    
+    try {
+      const requestBody = {
+        postId,
+        content,
+        parentCommentId: parentCommentId || undefined,
+        authorName,
+        authorEmail,
+      };
+      
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Track comment event
+        console.log('[CommentForm] Tracking comment event with postId:', postId);
+        trackComment(postId);
+        
+        // Show success message
+        successDiv.classList.remove('hidden');
+        
+        // Update rate limit info
+        if (data.remaining !== undefined) {
+          remainingComments.textContent = data.remaining;
+          rateLimitInfo.classList.remove('hidden');
+        }
+        
+        // Clear form
+        contentTextarea.value = '';
+        charCount.textContent = '0 / 5000';
+        
+        if (!anonymousFields.classList.contains('hidden')) {
+          document.getElementById('author-name').value = '';
+          document.getElementById('author-email').value = '';
+        }
+        
+        // Scroll to success message
+        successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Reload comments after a delay
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('comment-submitted'));
+          successDiv.classList.add('hidden');
+        }, 3000);
+      } else {
+        showError(data.error || data.message || 'Failed to submit comment');
+        
+        // Show rate limit info if available
+        if (response.status === 429 && data.remaining !== undefined) {
+          remainingComments.textContent = data.remaining;
+          rateLimitInfo.classList.remove('hidden');
+        }
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      showError('An error occurred. Please try again.');
+    } finally {
+      submitBtn.disabled = false;
+      submitText.classList.remove('hidden');
+      submitLoading.classList.add('hidden');
+    }
+  });
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorDiv.classList.remove('hidden');
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Cancel reply button
+  const cancelBtn = document.getElementById('cancel-reply');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      if (window.cancelReply) {
+        window.cancelReply();
+      }
+    });
+  }
+
+  // Initialize
+  checkAuthStatus();
+</script>
+
+<style>
+  .comment-form {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

@@ -1,0 +1,202 @@
+---
+/**
+ * OAuth Callback Handler
+ *
+ * This page receives the OAuth callback from the provider (Google, GitHub, etc.)
+ * with a code and state parameter. We use the stored codeVerifier from cookies
+ * to complete the PKCE flow with PocketBase's authWithOAuth2Code() method.
+ */
+
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { getPocketBase } from '../../lib/pocketbase';
+import { setAuthCookie } from '../../lib/auth';
+
+let authError: string | null = null;
+let success = false;
+let redirectUrl = '/dashboard';
+
+try {
+  const pb = getPocketBase();
+  const url = Astro.url;
+
+  // Get OAuth parameters from the URL (sent by the OAuth provider)
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+  const error = url.searchParams.get('error');
+  const errorDescription = url.searchParams.get('error_description');
+
+  // Check for OAuth error from provider
+  if (error) {
+    throw new Error(errorDescription || error);
+  }
+
+  if (!code) {
+    throw new Error('No authorization code received from provider');
+  }
+
+  // Get stored OAuth data from cookies
+  const storedProvider = Astro.cookies.get('oauth_provider')?.value;
+  const storedState = Astro.cookies.get('oauth_state')?.value;
+  const storedCodeVerifier = Astro.cookies.get('oauth_code_verifier')?.value;
+  const storedRedirect = Astro.cookies.get('oauth_redirect_to')?.value;
+
+  if (storedRedirect) {
+    redirectUrl = storedRedirect;
+  }
+
+  // Validate state to prevent CSRF attacks
+  if (!storedState || state !== storedState) {
+    throw new Error('Invalid OAuth state - possible CSRF attack');
+  }
+
+  if (!storedProvider || !storedCodeVerifier) {
+    throw new Error('Missing OAuth session data - please try again');
+  }
+
+  console.log(`\n=== OAuth Callback Debug ===`);
+  console.log(`Provider: ${storedProvider}`);
+  console.log(`Code: ${code.substring(0, 20)}...`);
+  console.log(`State matches: ${state === storedState}`);
+  console.log(`Code Verifier: ${storedCodeVerifier.substring(0, 20)}...`);
+
+  // Build the redirect URI (must match what was sent to the OAuth provider)
+  const appBaseUrl = import.meta.env.PUBLIC_APP_URL || url.origin;
+  const redirectUri = `${appBaseUrl}/auth/callback`;
+
+  console.log(`Redirect URI: ${redirectUri}`);
+
+  // Complete the OAuth flow with PocketBase using authWithOAuth2Code
+  const authData = await pb.collection('users').authWithOAuth2Code(
+    storedProvider,
+    code,
+    storedCodeVerifier,
+    redirectUri,
+    // Optional: createData for new users
+    {
+      emailVisibility: false,
+    }
+  );
+
+  console.log(
+    `OAuth authentication successful for user: ${authData.record.email}`
+  );
+  console.log(`=== End OAuth Callback Debug ===\n`);
+
+  // Clean up OAuth cookies
+  Astro.cookies.delete('oauth_provider', { path: '/' });
+  Astro.cookies.delete('oauth_state', { path: '/' });
+  Astro.cookies.delete('oauth_code_verifier', { path: '/' });
+  Astro.cookies.delete('oauth_redirect_to', { path: '/' });
+
+  // Set auth cookie for our application
+  if (pb.authStore.isValid && pb.authStore.token) {
+    await setAuthCookie(Astro.cookies, pb.authStore.token);
+    success = true;
+
+    console.log('Redirecting to:', redirectUrl);
+    return Astro.redirect(redirectUrl);
+  } else {
+    throw new Error('Authentication completed but no valid token received');
+  }
+} catch (err: any) {
+  console.error('OAuth callback error:', err);
+  authError = err.message || 'OAuth authentication failed';
+
+  // Log more details for debugging
+  if (err.status) console.error('Error status:', err.status);
+  if (err.response) console.error('Error response:', err.response);
+  if (err.data) console.error('Error data:', err.data);
+
+  // Clean up cookies on error too
+  Astro.cookies.delete('oauth_provider', { path: '/' });
+  Astro.cookies.delete('oauth_state', { path: '/' });
+  Astro.cookies.delete('oauth_code_verifier', { path: '/' });
+  Astro.cookies.delete('oauth_redirect_to', { path: '/' });
+}
+---
+
+<Layout title="OAuth Callback - Insightful Health">
+  <main
+    class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+  >
+    <div class="max-w-md w-full space-y-8">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {
+            success
+              ? 'Authentication Successful'
+              : 'Authentication Failed Again'
+          }
+        </h2>
+      </div>
+
+      {
+        success ? (
+          <div class="rounded-md bg-green-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg
+                  class="h-5 w-5 text-green-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-green-800">
+                  Successfully signed in!
+                </h3>
+                <div class="mt-2 text-sm text-green-700">
+                  <p>Redirecting to your dashboard...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg
+                  class="h-5 w-5 text-red-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  Authentication Failed
+                </h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <p>{authError}</p>
+                </div>
+                <div class="mt-4">
+                  <a
+                    href="/auth/login"
+                    class="font-medium text-red-600 hover:text-red-500"
+                  >
+                    Return to login →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </main>
+</Layout>

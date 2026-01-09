@@ -1,0 +1,503 @@
+---
+/**
+ * Admin Comments Moderation Page
+ * Manage and moderate all comments
+ */
+
+import Layout from '../../layouts/Layout.astro';
+import { getCurrentSession } from '../../lib/session';
+import { getPocketBase } from '../../lib/pocketbase';
+
+export const prerender = false;
+
+const user = await getCurrentSession(Astro.cookies);
+
+// Check if user is admin
+if (!user || user.role !== 'admin') {
+  return Astro.redirect('/403');
+}
+
+// Get filter from URL
+const url = new URL(Astro.request.url);
+const statusFilter = url.searchParams.get('status') || 'pending';
+const sortBy = url.searchParams.get('sort') || 'newest';
+
+const pb = getPocketBase();
+
+// Build filter query
+let filter = '';
+if (statusFilter !== 'all') {
+  filter = `status = "${statusFilter}"`;
+}
+
+// Build sort query
+let sort = '-created'; // Default: newest first
+if (sortBy === 'oldest') {
+  sort = 'created';
+}
+
+// Fetch comments
+const comments = await pb.collection('comments').getFullList({
+  filter,
+  sort,
+  expand: 'authorId,postId',
+});
+
+// Count by status
+const pendingCount = await pb.collection('comments').getList(1, 1, { filter: 'status = "pending"' });
+const approvedCount = await pb.collection('comments').getList(1, 1, { filter: 'status = "approved"' });
+const rejectedCount = await pb.collection('comments').getList(1, 1, { filter: 'status = "rejected"' });
+const spamCount = await pb.collection('comments').getList(1, 1, { filter: 'status = "spam"' });
+---
+
+<Layout title="Comment Moderation - Admin">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Comment Moderation
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Review and moderate user comments
+        </p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-yellow-50 dark:bg-yellow-900 rounded-lg p-4 border border-yellow-200 dark:border-yellow-700">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-yellow-600 dark:text-yellow-300 text-sm font-medium">Pending</p>
+              <p class="text-2xl font-bold text-yellow-700 dark:text-yellow-200">{pendingCount.totalItems}</p>
+            </div>
+            <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="bg-emerald-50 dark:bg-emerald-900 rounded-lg p-4 border border-emerald-200 dark:border-emerald-700">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-emerald-600 dark:text-emerald-300 text-sm font-medium">Approved</p>
+              <p class="text-2xl font-bold text-emerald-700 dark:text-emerald-200">{approvedCount.totalItems}</p>
+            </div>
+            <svg class="w-8 h-8 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="bg-red-50 dark:bg-red-900 rounded-lg p-4 border border-red-200 dark:border-red-700">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-red-600 dark:text-red-300 text-sm font-medium">Rejected</p>
+              <p class="text-2xl font-bold text-red-700 dark:text-red-200">{rejectedCount.totalItems}</p>
+            </div>
+            <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 border border-gray-300 dark:border-gray-600">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 dark:text-gray-300 text-sm font-medium">Spam</p>
+              <p class="text-2xl font-bold text-gray-700 dark:text-gray-200">{spamCount.totalItems}</p>
+            </div>
+            <svg class="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters and Actions -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <!-- Filter by status -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</label>
+            <select 
+              id="status-filter"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="all" selected={statusFilter === 'all'}>All</option>
+              <option value="pending" selected={statusFilter === 'pending'}>Pending</option>
+              <option value="approved" selected={statusFilter === 'approved'}>Approved</option>
+              <option value="rejected" selected={statusFilter === 'rejected'}>Rejected</option>
+              <option value="spam" selected={statusFilter === 'spam'}>Spam</option>
+            </select>
+
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 ml-4">Sort:</label>
+            <select 
+              id="sort-filter"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="newest" selected={sortBy === 'newest'}>Newest First</option>
+              <option value="oldest" selected={sortBy === 'oldest'}>Oldest First</option>
+            </select>
+          </div>
+
+          <!-- Bulk actions -->
+          <div class="flex items-center gap-2">
+            <button 
+              id="select-all"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              Select All
+            </button>
+            <button 
+              id="bulk-approve"
+              class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Approve Selected
+            </button>
+            <button 
+              id="bulk-reject"
+              class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Reject Selected
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments List -->
+      <div class="space-y-4">
+        {comments.length === 0 ? (
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <p class="text-gray-600 dark:text-gray-400 mt-4">No comments found</p>
+          </div>
+        ) : (
+          comments.map((comment) => (
+            <div 
+              class="comment-card bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              data-comment-id={comment.id}
+            >
+              <div class="flex gap-4">
+                <!-- Checkbox -->
+                <div class="flex-shrink-0 pt-1">
+                  <input 
+                    type="checkbox" 
+                    class="comment-checkbox w-5 h-5 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500"
+                    data-comment-id={comment.id}
+                  />
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  <!-- Header -->
+                  <div class="flex items-start justify-between mb-3">
+                    <div>
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="font-semibold text-gray-900 dark:text-white">
+                          {comment.authorName || 'Anonymous'}
+                        </span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                          {comment.authorEmail}
+                        </span>
+                        {comment.isEdited && (
+                          <span class="text-xs text-gray-500 dark:text-gray-400">(edited)</span>
+                        )}
+                      </div>
+                      <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <span>{new Date(comment.created).toLocaleString()}</span>
+                        <span>IP: {comment.ipAddress}</span>
+                      </div>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <span class={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      comment.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                      comment.status === 'approved' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' :
+                      comment.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                    }`}>
+                      {comment.status}
+                    </span>
+                  </div>
+
+                  <!-- Comment Content -->
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-3">
+                    <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
+                  </div>
+
+                  <!-- Post Info -->
+                  <div class="flex items-center gap-4 text-sm mb-4">
+                    <span class="text-gray-600 dark:text-gray-400">
+                      On post: 
+                      <a 
+                        href={`/post/${comment.expand?.postId?.slug}`}
+                        class="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 ml-1"
+                        target="_blank"
+                      >
+                        {comment.expand?.postId?.title || 'View Post'} →
+                      </a>
+                    </span>
+                    {comment.parentCommentId && (
+                      <span class="text-gray-600 dark:text-gray-400">
+                        Reply to another comment
+                      </span>
+                    )}
+                  </div>
+
+                  <!-- Rejection Reason -->
+                  {comment.rejectionReason && (
+                    <div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-3 mb-4">
+                      <p class="text-sm text-red-700 dark:text-red-200">
+                        <strong>Rejection reason:</strong> {comment.rejectionReason}
+                      </p>
+                    </div>
+                  )}
+
+                  <!-- Edit History (if any) -->
+                  {comment.editHistory && comment.editHistory.length > 0 && (
+                    <details class="mb-4">
+                      <summary class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200">
+                        View edit history ({comment.editHistory.length} edits)
+                      </summary>
+                      <div class="mt-2 space-y-2 pl-4 border-l-2 border-gray-300 dark:border-gray-600">
+                        {comment.editHistory.map((edit: any, index: number) => (
+                          <div class="text-sm">
+                            <p class="text-gray-500 dark:text-gray-400">
+                              {new Date(edit.editedAt).toLocaleString()}
+                            </p>
+                            <p class="text-gray-700 dark:text-gray-300 mt-1">
+                              {edit.content}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
+                  <!-- Actions -->
+                  <div class="flex items-center gap-2">
+                    {comment.status !== 'approved' && (
+                      <button 
+                        class="approve-btn px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+                        data-comment-id={comment.id}
+                      >
+                        Approve
+                      </button>
+                    )}
+                    {comment.status !== 'rejected' && (
+                      <button 
+                        class="reject-btn px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                        data-comment-id={comment.id}
+                      >
+                        Reject
+                      </button>
+                    )}
+                    {comment.status !== 'spam' && (
+                      <button 
+                        class="spam-btn px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-lg transition-colors"
+                        data-comment-id={comment.id}
+                      >
+                        Mark as Spam
+                      </button>
+                    )}
+                    <button 
+                      class="delete-btn px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-800 rounded-lg transition-colors"
+                      data-comment-id={comment.id}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
+  const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
+  const selectAllBtn = document.getElementById('select-all');
+  const bulkApproveBtn = document.getElementById('bulk-approve');
+  const bulkRejectBtn = document.getElementById('bulk-reject');
+  const checkboxes = document.querySelectorAll('.comment-checkbox') as NodeListOf<HTMLInputElement>;
+
+  // Filter change
+  statusFilter?.addEventListener('change', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('status', statusFilter.value);
+    window.location.href = url.toString();
+  });
+
+  sortFilter?.addEventListener('change', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', sortFilter.value);
+    window.location.href = url.toString();
+  });
+
+  // Select all
+  let allSelected = false;
+  selectAllBtn?.addEventListener('click', () => {
+    allSelected = !allSelected;
+    checkboxes.forEach(cb => cb.checked = allSelected);
+    updateBulkButtons();
+    selectAllBtn.textContent = allSelected ? 'Deselect All' : 'Select All';
+  });
+
+  // Update bulk button states
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateBulkButtons);
+  });
+
+  function updateBulkButtons() {
+    const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const disabled = selectedCount === 0;
+    
+    if (bulkApproveBtn) bulkApproveBtn.disabled = disabled;
+    if (bulkRejectBtn) bulkRejectBtn.disabled = disabled;
+  }
+
+  // Bulk approve
+  bulkApproveBtn?.addEventListener('click', async () => {
+    const selected = Array.from(checkboxes)
+      .filter(cb => cb.checked)
+      .map(cb => cb.dataset.commentId);
+
+    if (selected.length === 0) return;
+
+    if (!confirm(`Approve ${selected.length} comment(s)?`)) return;
+
+    await bulkModerate(selected, 'approve');
+  });
+
+  // Bulk reject
+  bulkRejectBtn?.addEventListener('click', async () => {
+    const selected = Array.from(checkboxes)
+      .filter(cb => cb.checked)
+      .map(cb => cb.dataset.commentId);
+
+    if (selected.length === 0) return;
+
+    const reason = prompt('Rejection reason (optional):');
+    if (reason === null) return;
+
+    await bulkModerate(selected, 'reject', reason);
+  });
+
+  // Individual actions
+  document.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const commentId = (e.target as HTMLElement).dataset.commentId;
+      if (commentId) await moderateComment(commentId, 'approve');
+    });
+  });
+
+  document.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const commentId = (e.target as HTMLElement).dataset.commentId;
+      const reason = prompt('Rejection reason (optional):');
+      if (reason !== null && commentId) {
+        await moderateComment(commentId, 'reject', reason);
+      }
+    });
+  });
+
+  document.querySelectorAll('.spam-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const commentId = (e.target as HTMLElement).dataset.commentId;
+      if (commentId && confirm('Mark as spam?')) {
+        await moderateComment(commentId, 'spam');
+      }
+    });
+  });
+
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const commentId = (e.target as HTMLElement).dataset.commentId;
+      if (commentId && confirm('Delete this comment permanently?')) {
+        await deleteComment(commentId);
+      }
+    });
+  });
+
+  // Moderate single comment
+  async function moderateComment(commentId: string, action: string, rejectionReason?: string) {
+    try {
+      const response = await fetch(`/api/comments/moderate/${commentId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, rejectionReason }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || 'Comment moderated successfully');
+        window.location.reload();
+      } else {
+        alert(data.error || 'Failed to moderate comment');
+      }
+    } catch (error) {
+      console.error('Moderate error:', error);
+      alert('An error occurred');
+    }
+  }
+
+  // Bulk moderate
+  async function bulkModerate(commentIds: string[], action: string, rejectionReason?: string) {
+    let success = 0;
+    let failed = 0;
+
+    for (const id of commentIds) {
+      try {
+        const response = await fetch(`/api/comments/moderate/${id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, rejectionReason }),
+        });
+
+        if (response.ok) {
+          success++;
+        } else {
+          failed++;
+        }
+      } catch (error) {
+        failed++;
+      }
+    }
+
+    alert(`Moderated ${success} comment(s). ${failed} failed.`);
+    window.location.reload();
+  }
+
+  // Delete comment
+  async function deleteComment(commentId: string) {
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Comment deleted successfully');
+        window.location.reload();
+      } else {
+        alert(data.error || 'Failed to delete comment');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('An error occurred');
+    }
+  }
+</script>

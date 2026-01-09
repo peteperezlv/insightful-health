@@ -1,0 +1,514 @@
+---
+/**
+ * Dashboard - Posts Management Page
+ * Lists all posts by the current user with filtering and actions
+ */
+
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { isAuthor, isAdmin } from '../../lib/session';
+import { ensureCSRFToken } from '../../lib/csrf';
+import { getPostsByAuthor, listPosts } from '../../lib/posts';
+
+const user = Astro.locals.user;
+
+// Double-check author/admin access
+if (!user || !isAuthor(user)) {
+  return Astro.redirect('/403');
+}
+
+const csrfToken = ensureCSRFToken(Astro.cookies);
+
+// Get query parameters for filtering
+const url = new URL(Astro.request.url);
+const statusFilter = url.searchParams.get('status') || 'all';
+const page = parseInt(url.searchParams.get('page') || '1');
+const perPage = 10;
+
+// Fetch posts - admins see all, authors see only their own
+const isUserAdmin = isAdmin(user);
+const postsResult = isUserAdmin 
+  ? await listPosts({ page, perPage, status: statusFilter as any })
+  : await getPostsByAuthor(user.id, { page, perPage, status: statusFilter as any });
+
+const posts = postsResult.posts || [];
+const totalItems = postsResult.totalItems || 0;
+const totalPages = postsResult.totalPages || 1;
+---
+
+<Layout title="My Posts - Insightful Health">
+  <div class="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {isUserAdmin ? 'All Posts' : 'My Posts'}
+          </h1>
+          <p class="mt-2 text-sm text-gray-600">
+            {isUserAdmin 
+              ? 'Manage all blog posts on the platform.'
+              : 'View and manage your blog posts.'}
+          </p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+          <a
+            href="/dashboard/create-post"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Post
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-6 bg-white shadow rounded-lg p-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center">
+          <label class="mr-2 text-sm font-medium text-gray-700">Status:</label>
+          <div class="flex rounded-md shadow-sm">
+            <a
+              href="?status=all"
+              class={`px-3 py-2 text-sm font-medium rounded-l-md border ${
+                statusFilter === 'all' 
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-500' 
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              All
+            </a>
+            <a
+              href="?status=published"
+              class={`px-3 py-2 text-sm font-medium border-t border-b ${
+                statusFilter === 'published' 
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-500' 
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              Published
+            </a>
+            <a
+              href="?status=draft"
+              class={`px-3 py-2 text-sm font-medium rounded-r-md border ${
+                statusFilter === 'draft' 
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-500' 
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              Drafts
+            </a>
+          </div>
+        </div>
+        <div class="text-sm text-gray-500">
+          {totalItems} post{totalItems !== 1 ? 's' : ''} found
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="alert-container" class="mb-6 hidden">
+      <div id="alert-message" class="p-4 rounded-md"></div>
+    </div>
+
+    <!-- Posts Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      {posts.length === 0 ? (
+        <div class="p-8 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No posts</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            {statusFilter === 'all' 
+              ? "Get started by creating a new post."
+              : `No ${statusFilter} posts found.`}
+          </p>
+          <div class="mt-6">
+            <a
+              href="/dashboard/create-post"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              New Post
+            </a>
+          </div>
+        </div>
+      ) : (
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Title
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stats
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {posts.map((post) => (
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    {post.featuredImageUrl && (
+                      <img 
+                        src={post.featuredImageUrl} 
+                        alt="" 
+                        class="h-10 w-10 rounded object-cover mr-3"
+                      />
+                    )}
+                    <div>
+                      <div class="text-sm font-medium text-gray-900 line-clamp-1">
+                        {post.title}
+                      </div>
+                      <div class="text-sm text-gray-500 line-clamp-1">
+                        /post/{post.slug}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    post.status === 'published' ? 'bg-green-100 text-green-800' :
+                    post.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {post.status}
+                  </span>
+                  {post.isFeatured && (
+                    <span class="ml-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      Featured
+                    </span>
+                  )}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div class="flex items-center space-x-3">
+                    <span title="Views" class="flex items-center">
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      {post.viewCount || 0}
+                    </span>
+                    <span title="Likes" class="flex items-center">
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                      {post.likeCount || 0}
+                    </span>
+                    <span title="Comments" class="flex items-center">
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      {post.commentCount || 0}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div>
+                    {post.publishedAt 
+                      ? new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : new Date(post.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    }
+                  </div>
+                  <div class="text-xs text-gray-400">
+                    {post.readingTimeMinutes || 1} min read
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex items-center justify-end space-x-2">
+                    {post.status === 'published' && (
+                      <a
+                        href={`/post/${post.slug}`}
+                        target="_blank"
+                        class="text-gray-400 hover:text-gray-600"
+                        title="View"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    )}
+                    <a
+                      href={`/dashboard/edit-post/${post.id}`}
+                      class="text-emerald-600 hover:text-emerald-900"
+                      title="Edit"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </a>
+                    <button
+                      type="button"
+                      class="text-red-600 hover:text-red-900 delete-post-btn"
+                      data-post-id={post.id}
+                      data-post-title={post.title}
+                      title="Delete"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div class="flex-1 flex justify-between sm:hidden">
+            {page > 1 ? (
+              <a href={`?status=${statusFilter}&page=${page - 1}`} class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Previous
+              </a>
+            ) : (
+              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+                Previous
+              </span>
+            )}
+            {page < totalPages ? (
+              <a href={`?status=${statusFilter}&page=${page + 1}`} class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Next
+              </a>
+            ) : (
+              <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+                Next
+              </span>
+            )}
+          </div>
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700">
+                Showing <span class="font-medium">{(page - 1) * perPage + 1}</span> to <span class="font-medium">{Math.min(page * perPage, totalItems)}</span> of{' '}
+                <span class="font-medium">{totalItems}</span> results
+              </p>
+            </div>
+            <div>
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                {page > 1 ? (
+                  <a href={`?status=${statusFilter}&page=${page - 1}`} class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">Previous</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </a>
+                ) : (
+                  <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
+                    <span class="sr-only">Previous</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </span>
+                )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, page - 3), Math.min(totalPages, page + 2)).map((pageNum) => (
+                  <a
+                    href={`?status=${statusFilter}&page=${pageNum}`}
+                    class={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      pageNum === page
+                        ? 'z-10 bg-emerald-50 border-emerald-500 text-emerald-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </a>
+                ))}
+                {page < totalPages ? (
+                  <a href={`?status=${statusFilter}&page=${page + 1}`} class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">Next</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </a>
+                ) : (
+                  <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
+                    <span class="sr-only">Next</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </span>
+                )}
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="delete-backdrop"></div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+      <div class="relative inline-block w-full max-w-md px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6 z-10">
+        <div class="sm:flex sm:items-start">
+          <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-red-100 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Delete Post</h3>
+            <div class="mt-2">
+              <p class="text-sm text-gray-500">
+                Are you sure you want to delete "<span id="delete-post-title"></span>"? This action cannot be undone.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <button
+            type="button"
+            id="confirm-delete-btn"
+            class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Delete
+          </button>
+          <button
+            type="button"
+            id="cancel-delete-btn"
+            class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:mt-0 sm:w-auto sm:text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ csrfToken }}>
+  // Delete functionality
+  console.log('Posts management script loaded, CSRF token:', csrfToken);
+  
+  const deleteModal = document.getElementById('delete-modal');
+  const deleteBackdrop = document.getElementById('delete-backdrop');
+  const deletePostTitle = document.getElementById('delete-post-title');
+  const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+  const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+  const alertContainer = document.getElementById('alert-container');
+  const alertMessage = document.getElementById('alert-message');
+
+  console.log('Elements found:', {
+    deleteModal: !!deleteModal,
+    confirmDeleteBtn: !!confirmDeleteBtn,
+    alertContainer: !!alertContainer,
+    deleteButtons: document.querySelectorAll('.delete-post-btn').length
+  });
+
+  let postIdToDelete = null;
+
+  function showAlert(message, type) {
+    if (!alertContainer || !alertMessage) {
+      console.error('Alert elements not found');
+      return;
+    }
+    alertContainer.classList.remove('hidden');
+    alertMessage.className = `p-4 rounded-md ${
+      type === 'success' ? 'bg-green-50 text-green-800' :
+      type === 'error' ? 'bg-red-50 text-red-800' :
+      'bg-blue-50 text-blue-800'
+    }`;
+    alertMessage.textContent = message;
+  }
+
+  function openDeleteModal(postId, title) {
+    postIdToDelete = postId;
+    deletePostTitle.textContent = title;
+    deleteModal?.classList.remove('hidden');
+  }
+
+  function closeDeleteModal() {
+    deleteModal?.classList.add('hidden');
+    postIdToDelete = null;
+  }
+
+  // Attach event listeners to delete buttons
+  document.querySelectorAll('.delete-post-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const postId = btn.dataset.postId;
+      const title = btn.dataset.postTitle;
+      console.log('Delete button clicked for post:', postId, title);
+      openDeleteModal(postId, title);
+    });
+  });
+
+  cancelDeleteBtn?.addEventListener('click', closeDeleteModal);
+  deleteBackdrop?.addEventListener('click', closeDeleteModal);
+
+  confirmDeleteBtn?.addEventListener('click', async () => {
+    if (!postIdToDelete) {
+      console.error('No post ID to delete');
+      return;
+    }
+
+    try {
+      if (confirmDeleteBtn) {
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.textContent = 'Deleting...';
+      }
+
+      console.log('Deleting post:', postIdToDelete);
+      
+      const response = await fetch(`/api/posts/${postIdToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+      });
+
+      console.log('Delete response status:', response.status);
+      const result = await response.json();
+      console.log('Delete result:', result);
+
+      if (response.ok && result.success) {
+        closeDeleteModal();
+        showAlert('Post deleted successfully!', 'success');
+        // Reload the page to refresh the list after a brief delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        closeDeleteModal();
+        showAlert(result.error || 'Failed to delete post', 'error');
+      }
+    } catch (error) {
+      console.error('Delete post error:', error);
+      closeDeleteModal();
+      showAlert('An error occurred while deleting', 'error');
+    } finally {
+      if (confirmDeleteBtn) {
+        confirmDeleteBtn.disabled = false;
+        confirmDeleteBtn.textContent = 'Delete';
+      }
+    }
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeDeleteModal();
+    }
+  });
+</script>
