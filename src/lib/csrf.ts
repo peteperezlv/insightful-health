@@ -26,7 +26,7 @@ export function setCSRFToken(cookies: AstroCookies): string {
   cookies.set(CSRF_COOKIE_NAME, token, {
     path: '/',
     httpOnly: false, // Needs to be accessible to JavaScript
-    secure: import.meta.env.PROD,
+    secure: import.meta.env.PROD, 
     sameSite: 'strict',
     maxAge: 60 * 60 * 24, // 24 hours
   });

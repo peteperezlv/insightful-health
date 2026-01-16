@@ -223,7 +223,7 @@ export function setAuthCookie(
     path: '/',
     httpOnly: true,
     secure: import.meta.env.PROD,
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge,
   });
 }

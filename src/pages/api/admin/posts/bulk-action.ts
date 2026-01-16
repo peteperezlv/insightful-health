@@ -4,8 +4,10 @@
  */
 
 import type { APIRoute } from 'astro';
-import { getPocketBase } from '../../../lib/pocketbase';
-import { logAdminAction } from '../../../lib/auditLog';
+
+// pp 1/9/2026 cleaned up relative paths
+import { getPocketBase } from '../../../../lib/pocketbase';
+import { logAdminAction } from '../../../../lib/auditLog';
 
 export const POST: APIRoute = async ({ locals, request }) => {
   const user = locals.user;

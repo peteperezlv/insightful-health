@@ -4,6 +4,7 @@
  */
 
 import type { APIRoute } from 'astro';
+// pp 1/9/2025 cleaned up relative paths.
 import { getPocketBase, initPocketBase } from '../../../../lib/pocketbase';
 import { isAdmin } from '../../../../lib/session';
 
