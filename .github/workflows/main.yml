@@ -43,6 +43,7 @@ jobs:
 
       - name: Deploy to EC2 Ubuntu
         run: |
+          set -x
           # Create deployment archive
           tar -czf deploy.tar.gz dist/ package.json package-lock.json
       
