@@ -27,9 +27,8 @@ jobs:
           server: 3.135.134.223
           port: 22 # default is 22
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
- 
           
-          # will put all file under this path
+          # will clone/copy all file under this path
           local_path: ./* # default is ./*
           # files will copy to under remote_path
           remote_path: /var/www
