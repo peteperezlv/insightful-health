@@ -39,7 +39,7 @@ jobs:
         run: | 
           set -x mkdir -p ~/.ssh 
           chmod 700 ~/.ssh 
-          ssh-keyscan -4 -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -4 -H ${{ secrets.SSH_HOST }}  2>&1 | tee -a ~/.ssh/known_hosts
 
       - name: Deploy to EC2 Ubuntu
         run: |
