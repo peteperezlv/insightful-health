@@ -38,7 +38,7 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts      
+          ssh-keyscan -H 3.135.134.223 >> ~/.ssh/known_hosts      
 
       - name: Deploy to EC2 Ubuntu
         run: |
