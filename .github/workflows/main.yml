@@ -39,14 +39,68 @@ jobs:
         run: | 
           set -x mkdir -p ~/.ssh 
           chmod 700 ~/.ssh 
-          ssh-keyscan -4 -H insightfulhealth.online 2>&1 | tee -a ~/.ssh/known_hosts
+          ssh-keyscan -4 -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to EC2 Ubuntu
         run: |
           # Create deployment archive
           tar -czf deploy.tar.gz dist/ package.json package-lock.json
-
+      
           # Upload to server
-          scp deploy.tar.gz ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/tmp/
+          scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+            deploy.tar.gz ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/tmp/
+      
+          # Execute deployment commands
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+            ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+              set -e
+      
+              mkdir -p ~/backups
+      
+              cd /var/www/insightful-health
+      
+              # Backup current version
+              if [ -d "dist" ]; then
+                tar -czf ~/backups/site_backup_$(date +%Y%m%d_%H%M%S).tar.gz dist/
+              fi
+      
+              # Extract new version safely
+              tar -xzf /tmp/deploy.tar.gz -C /var/www/insightful-health
+              rm /tmp/deploy.tar.gz
+      
+              # Install dependencies only if package.json changed
+              if ! cmp -s package.json /var/www/insightful-health/package.json; then
+                npm ci --production
+              fi
+      
+              # Restart PM2 safely
+              if pm2 describe insightful-health > /dev/null 2>&1; then
+                pm2 restart insightful-health
+              else
+                pm2 start dist/server.js --name insightful-health
+              fi
+      
+              # Reload Nginx
+              sudo systemctl reload nginx
+      
+              # Clean old backups (keep last 5)
+              cd ~/backups
+              ls -t site_backup_*.tar.gz | tail -n +6 | xargs -r rm
+      
+              echo "Deployment successful!"
+             ENDSSH
+             
+      - name: Verify deployment
+        run: |
+          sleep 5
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://insightfulhealth.online)
+      
+          if [ "$response" -ge 200 ] && [ "$response" -lt 400 ]; then
+            echo "Site is accessible (HTTP $response)"
+          else
+            echo "Site returned HTTP $response"
+            exit 1
+          fi
+
 
          
