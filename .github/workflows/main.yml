@@ -89,7 +89,7 @@ jobs:
               ls -t site_backup_*.tar.gz | tail -n +6 | xargs -r rm
       
               echo "Deployment successful!"
-             ENDSSH
+             'ENDSSH'
              
       - name: Verify deployment
         run: |
