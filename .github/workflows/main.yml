@@ -71,7 +71,7 @@ jobs:
            
                # Install dependencies only if package.json changed
                if ! cmp -s package.json /var/www/insightful-health/package.json; then
-                 npm ci --production
+                 npm ci # pp 1/18/2026 --production removed to resolve deployment error
                fi
            
                # Restart PM2 safely
