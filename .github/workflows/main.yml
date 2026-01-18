@@ -48,7 +48,7 @@ jobs:
           tar -czf deploy.tar.gz dist/ package.json package-lock.json
       
           # Upload to server
-          scp -4 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+          scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
             deploy.tar.gz ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/tmp/
       
           # Execute deployment commands
