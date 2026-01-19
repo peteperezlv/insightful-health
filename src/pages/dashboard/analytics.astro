@@ -10,7 +10,7 @@ if (!user) {
   return Astro.redirect('/auth/login');
 }
 
-if (!['author', 'admin'].includes(user.role)) {
+if (!user.role || !['author', 'admin'].includes(user.role)) {
   return Astro.redirect('/403');
 }
 ---
