@@ -262,13 +262,17 @@ if (!['author', 'admin'].includes(user.role)) {
     </div>
   </div>
 
-  <script
-    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-  ></script>
   <script>
     let currentPeriod = 30;
+    let Chart; // Chart.js loaded dynamically
 
     async function loadAnalytics() {
+      // Load Chart.js dynamically only when needed
+      if (!Chart) {
+        const module = await import('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/+esm');
+        Chart = module.Chart;
+      }
+
       const loadingEl = document.getElementById('loading');
       const errorEl = document.getElementById('error');
       const summaryEl = document.getElementById('summary');
@@ -368,7 +372,7 @@ if (!['author', 'admin'].includes(user.role)) {
           'views-chart'
         ) as HTMLCanvasElement;
         if (chartCanvas && sortedDays.length > 0) {
-          new (window as any).Chart(chartCanvas, {
+          new Chart(chartCanvas, {
             type: 'line',
             data: {
               labels: sortedDays.map(([day]) => {
@@ -415,7 +419,7 @@ if (!['author', 'admin'].includes(user.role)) {
           'device-chart'
         ) as HTMLCanvasElement;
         if (deviceCanvas && (mobileViews > 0 || desktopViews > 0)) {
-          new (window as any).Chart(deviceCanvas, {
+          new Chart(deviceCanvas, {
             type: 'doughnut',
             data: {
               labels: ['Mobile', 'Desktop'],

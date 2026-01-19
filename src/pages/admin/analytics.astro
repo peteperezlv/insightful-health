@@ -205,11 +205,16 @@ if (user.role !== 'admin') {
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
     let currentPeriod = 30;
+    let Chart; // Chart.js loaded dynamically
 
     async function loadAnalytics() {
+      // Load Chart.js dynamically only when needed
+      if (!Chart) {
+        const module = await import('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/+esm');
+        Chart = module.Chart;
+      }
       const loadingEl = document.getElementById('loading');
       const errorEl = document.getElementById('error');
       const totalsEl = document.getElementById('totals');
@@ -264,7 +269,7 @@ if (user.role !== 'admin') {
         
         const activityCanvas = document.getElementById('activity-chart') as HTMLCanvasElement;
         if (activityCanvas && sortedDays.length > 0) {
-          new (window as any).Chart(activityCanvas, {
+          new Chart(activityCanvas, {
             type: 'line',
             data: {
               labels: sortedDays.map(([day]) => {
@@ -305,7 +310,7 @@ if (user.role !== 'admin') {
         const eventsCanvas = document.getElementById('events-chart') as HTMLCanvasElement;
         if (eventsCanvas && data.events.byType) {
           const eventTypes = Object.entries(data.events.byType);
-          new (window as any).Chart(eventsCanvas, {
+          new Chart(eventsCanvas, {
             type: 'doughnut',
             data: {
               labels: eventTypes.map(([type]) => type.charAt(0).toUpperCase() + type.slice(1)),
