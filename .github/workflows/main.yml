@@ -1,6 +1,6 @@
 name: Deploy to EC2 Ubuntu
- 
-# Controls when the action will run. 
+
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
@@ -9,14 +9,14 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
- 
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "SFTP"
   deploy:
     name: Build and Deploy to EC2 Ubuntu
     runs-on: ubuntu-latest
-    
+
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
@@ -29,14 +29,14 @@ jobs:
         run: npm ci
       - name: Build project
         run: npm run build
-        
+
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add server to known hosts 
-        run: | 
+      - name: Add server to known hosts
+        run: |
           set -x mkdir -p ~/.ssh 
           chmod 700 ~/.ssh 
           ssh-keyscan -4 -H ${{ secrets.SSH_HOST }}  2>&1 | tee -a ~/.ssh/known_hosts
@@ -46,11 +46,11 @@ jobs:
           set -x
           # Create deployment archive
           tar -czf deploy.tar.gz dist/ package.json package-lock.json
-      
+
           # Upload to server
           scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
             deploy.tar.gz ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/tmp/
-      
+
           # Execute deployment commands
           ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
              ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
@@ -91,18 +91,14 @@ jobs:
                echo "Deployment successful!"
           ENDSSH
 
-             
       - name: Verify deployment
         run: |
           sleep 5
           response=$(curl -s -o /dev/null -w "%{http_code}" https://insightfulhealth.online)
-      
+
           if [ "$response" -ge 200 ] && [ "$response" -lt 400 ]; then
             echo "Site is accessible (HTTP $response)"
           else
-            echo "Site returned HTTP $response"
+            echo "Site returned this HTTP $response"
             exit 1
           fi
-
-
-         
