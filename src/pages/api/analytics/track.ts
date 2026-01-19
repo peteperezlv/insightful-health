@@ -45,19 +45,14 @@ export const POST: APIRoute = async ({ request, clientAddress, cookies }) => {
     let userId: string | null = null;
     try {
       const user = await getCurrentSession(cookies);
-      console.log('[Analytics Track] User from session:', user);
-      if (user && user.id) {
+      if (user?.id) {
         userId = user.id;
         console.log('[Analytics Track] Setting userId to:', userId);
-      } else {
-        console.log('[Analytics Track] No user or user.id found');
       }
     } catch (e) {
-      console.error('[Analytics Track] Error getting session:', e);
-      // Not authenticated, that's ok
+      // Not authenticated or session error - that's ok for analytics
+      console.log('[Analytics Track] No authenticated user (this is normal for anonymous visitors)');
     }
-
-    console.log('[Analytics Track] Final userId value:', userId);
 
     // Create analytics record
     const analyticsData: any = {
@@ -110,10 +105,13 @@ export const POST: APIRoute = async ({ request, clientAddress, cookies }) => {
     });
 
   } catch (error: any) {
-    console.error('Analytics tracking error:', error);
+    console.error('[Analytics Track] ERROR:', error);
+    console.error('[Analytics Track] Error message:', error?.message);
+    console.error('[Analytics Track] Error stack:', error?.stack);
     return new Response(JSON.stringify({ 
       error: 'Failed to track event',
-      message: error.message 
+      message: error?.message || 'Unknown error',
+      details: error?.data || error?.response?.data || null
     }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
