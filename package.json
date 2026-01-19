@@ -27,6 +27,7 @@
     "@tiptap/pm": "^3.14.0",
     "@tiptap/starter-kit": "^3.14.0",
     "astro": "^5.16.6",
+    "chart.js": "^4.5.1",
     "isomorphic-dompurify": "^2.35.0",
     "lowlight": "^3.3.0",
     "pocketbase": "^0.26.5",
