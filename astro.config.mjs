@@ -57,30 +57,8 @@ export default defineConfig({
       minify: 'esbuild',
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            // Vendor libraries
-            if (id.includes('node_modules')) {
-              if (id.includes('pocketbase')) {
-                return 'vendor-pocketbase';
-              }
-              // Other npm packages
-              return 'vendor-other';
-            }
-            
-            // Admin pages bundle
-            if (id.includes('src/pages/admin/')) {
-              return 'admin';
-            }
-            
-            // Dashboard pages bundle
-            if (id.includes('src/pages/dashboard/')) {
-              return 'dashboard';
-            }
-            
-            // Auth pages bundle
-            if (id.includes('src/pages/auth/')) {
-              return 'auth';
-            }
+          manualChunks: {
+            'vendor': ['pocketbase'],
           },
         },
       },
