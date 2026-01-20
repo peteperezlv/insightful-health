@@ -223,7 +223,7 @@ export function setAuthCookie(
     path: '/',
     httpOnly: true,
     secure: import.meta.env.PROD,
-    sameSite: 'strict',
+    sameSite: 'lax', // Use 'lax' to allow cookies during OAuth redirects
     maxAge,
   });
 }
