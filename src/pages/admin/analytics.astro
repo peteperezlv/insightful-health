@@ -23,10 +23,12 @@ if (user.role !== 'admin') {
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-3xl font-bold text-gray-900">Platform Analytics</h1>
-            <p class="mt-2 text-gray-600">Overview of platform-wide statistics and trends</p>
+            <p class="mt-2 text-gray-600">
+              Overview of platform-wide statistics and trends
+            </p>
           </div>
-          <a 
-            href="/admin" 
+          <a
+            href="/admin"
             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             ← Back to Admin
@@ -36,9 +38,11 @@ if (user.role !== 'admin') {
 
       <!-- Time Period Selector -->
       <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <label for="period" class="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
-        <select 
-          id="period" 
+        <label for="period" class="block text-sm font-medium text-gray-700 mb-2"
+          >Time Period</label
+        >
+        <select
+          id="period"
           class="block w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
         >
           <option value="7">Last 7 days</option>
@@ -49,27 +53,54 @@ if (user.role !== 'admin') {
 
       <!-- Loading State -->
       <div id="loading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <div
+          class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"
+        >
+        </div>
         <p class="mt-4 text-gray-600">Loading analytics...</p>
       </div>
 
       <!-- Error State -->
-      <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p class="text-red-800">Failed to load analytics. Please try again later.</p>
+      <div
+        id="error"
+        class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
+      >
+        <p class="text-red-800">
+          Failed to load analytics. Please try again later.
+        </p>
       </div>
 
       <!-- Total Counts -->
-      <div id="totals" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div
+        id="totals"
+        class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+      >
         <div class="bg-white rounded-lg shadow-sm p-6">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">Total Users</p>
-              <p id="total-users" class="mt-2 text-3xl font-bold text-gray-900">0</p>
-              <p id="new-users" class="mt-1 text-sm text-green-600">+0 this period</p>
+              <p id="total-users" class="mt-2 text-3xl font-bold text-gray-900">
+                0
+              </p>
+              <p id="new-users" class="mt-1 text-sm text-green-600">
+                +0 this period
+              </p>
             </div>
-            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            <div
+              class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                ></path>
               </svg>
             </div>
           </div>
@@ -79,12 +110,28 @@ if (user.role !== 'admin') {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">Total Posts</p>
-              <p id="total-posts" class="mt-2 text-3xl font-bold text-gray-900">0</p>
-              <p id="new-posts" class="mt-1 text-sm text-green-600">+0 this period</p>
+              <p id="total-posts" class="mt-2 text-3xl font-bold text-gray-900">
+                0
+              </p>
+              <p id="new-posts" class="mt-1 text-sm text-green-600">
+                +0 this period
+              </p>
             </div>
-            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <div
+              class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
               </svg>
             </div>
           </div>
@@ -94,11 +141,28 @@ if (user.role !== 'admin') {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">Total Comments</p>
-              <p id="total-comments" class="mt-2 text-3xl font-bold text-gray-900">0</p>
+              <p
+                id="total-comments"
+                class="mt-2 text-3xl font-bold text-gray-900"
+              >
+                0
+              </p>
             </div>
-            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            <div
+              class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                ></path>
               </svg>
             </div>
           </div>
@@ -108,11 +172,25 @@ if (user.role !== 'admin') {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">Total Likes</p>
-              <p id="total-likes" class="mt-2 text-3xl font-bold text-gray-900">0</p>
+              <p id="total-likes" class="mt-2 text-3xl font-bold text-gray-900">
+                0
+              </p>
             </div>
-            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            <div
+              class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                ></path>
               </svg>
             </div>
           </div>
@@ -120,7 +198,10 @@ if (user.role !== 'admin') {
       </div>
 
       <!-- Activity Stats -->
-      <div id="activity" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div
+        id="activity"
+        class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+      >
         <div class="bg-white rounded-lg shadow-sm p-6">
           <h3 class="text-sm font-medium text-gray-600 mb-2">Active Users</h3>
           <p id="active-users" class="text-2xl font-bold text-gray-900">0</p>
@@ -128,7 +209,9 @@ if (user.role !== 'admin') {
         </div>
 
         <div class="bg-white rounded-lg shadow-sm p-6">
-          <h3 class="text-sm font-medium text-gray-600 mb-2">Active Sessions</h3>
+          <h3 class="text-sm font-medium text-gray-600 mb-2">
+            Active Sessions
+          </h3>
           <p id="active-sessions" class="text-2xl font-bold text-gray-900">0</p>
           <p class="text-xs text-gray-500 mt-1">Unique sessions</p>
         </div>
@@ -141,13 +224,19 @@ if (user.role !== 'admin') {
       </div>
 
       <!-- Activity Chart -->
-      <div id="chart-container" class="hidden bg-white rounded-lg shadow-sm p-6 mb-8">
+      <div
+        id="chart-container"
+        class="hidden bg-white rounded-lg shadow-sm p-6 mb-8"
+      >
         <h2 class="text-xl font-bold text-gray-900 mb-4">Activity Over Time</h2>
         <canvas id="activity-chart"></canvas>
       </div>
 
       <!-- Event Types -->
-      <div id="events-container" class="hidden bg-white rounded-lg shadow-sm p-6 mb-8">
+      <div
+        id="events-container"
+        class="hidden bg-white rounded-lg shadow-sm p-6 mb-8"
+      >
         <h2 class="text-xl font-bold text-gray-900 mb-4">Events by Type</h2>
         <div class="max-w-md mx-auto">
           <canvas id="events-chart"></canvas>
@@ -155,7 +244,10 @@ if (user.role !== 'admin') {
       </div>
 
       <!-- Top Posts -->
-      <div id="top-posts-container" class="hidden bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+      <div
+        id="top-posts-container"
+        class="hidden bg-white rounded-lg shadow-sm overflow-hidden mb-8"
+      >
         <div class="p-6 border-b border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Top Performing Posts</h2>
         </div>
@@ -163,21 +255,42 @@ if (user.role !== 'admin') {
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Likes</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Post</th
+                >
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Author</th
+                >
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Views</th
+                >
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Likes</th
+                >
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Comments</th
+                >
               </tr>
             </thead>
-            <tbody id="top-posts-body" class="bg-white divide-y divide-gray-200">
+            <tbody
+              id="top-posts-body"
+              class="bg-white divide-y divide-gray-200"
+            >
             </tbody>
           </table>
         </div>
       </div>
 
       <!-- Trending Authors -->
-      <div id="authors-container" class="hidden bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+      <div
+        id="authors-container"
+        class="hidden bg-white rounded-lg shadow-sm overflow-hidden mb-8"
+      >
         <div class="p-6 border-b border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Trending Authors</h2>
         </div>
@@ -185,9 +298,18 @@ if (user.role !== 'admin') {
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posts</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Views</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Author</th
+                >
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Posts</th
+                >
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >Total Views</th
+                >
               </tr>
             </thead>
             <tbody id="authors-body" class="bg-white divide-y divide-gray-200">
@@ -197,10 +319,12 @@ if (user.role !== 'admin') {
       </div>
 
       <!-- Popular Searches -->
-      <div id="searches-container" class="hidden bg-white rounded-lg shadow-sm p-6">
+      <div
+        id="searches-container"
+        class="hidden bg-white rounded-lg shadow-sm p-6"
+      >
         <h2 class="text-xl font-bold text-gray-900 mb-4">Popular Searches</h2>
-        <div id="searches-list" class="space-y-2">
-        </div>
+        <div id="searches-list" class="space-y-2"></div>
       </div>
     </div>
   </div>
