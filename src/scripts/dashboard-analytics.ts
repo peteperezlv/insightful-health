@@ -3,6 +3,9 @@
  * Uses tree-shakeable Chart.js imports with lazy loading
  */
 
+// Make this file a proper ES module to avoid global scope conflicts
+export {};
+
 let currentPeriod = 30;
 let Chart: any = null;
 let chartInstances: any[] = [];
