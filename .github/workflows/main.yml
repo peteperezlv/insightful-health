@@ -34,8 +34,8 @@ jobs:
         run: npm run build
         env:
           PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
-          #PUBLIC_POCKETBASE_URL: ${{ secrets.PUBLIC_POCKETBASE_URL }}
-          PUBLIC_POCKETBASE_URL: 'http://127.0.0.1:8090'
+          PUBLIC_POCKETBASE_URL: ${{ secrets.PUBLIC_POCKETBASE_URL }}
+          #PUBLIC_POCKETBASE_URL: 'http://127.0.0.1:8090'
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
