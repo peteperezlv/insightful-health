@@ -35,7 +35,12 @@ jobs:
         env:
           PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
           PUBLIC_POCKETBASE_URL: ${{ secrets.PUBLIC_POCKETBASE_URL }}
-          #PUBLIC_POCKETBASE_URL: 'http://127.0.0.1:8090'
+
+          # OAuth Credentials - Google (development)
+          PRIVATE_OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.PRIVATE_OAUTH_GOOGLE_CLIENT_ID }}
+          PRIVATE_OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.PRIVATE_OAUTH_GOOGLE_CLIENT_SECRET }}
+          PRIVATE_OAUTH_GOOGLE_REDIRECT_URI: ${{ secrets.PRIVATE_OAUTH_GOOGLE_REDIRECT_URI }}
+
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
