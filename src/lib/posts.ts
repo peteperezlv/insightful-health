@@ -379,7 +379,7 @@ export async function updatePost(
       }
     }
     if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
-    if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
+    if (data.categoryId !== undefined) updateData.categoryId = data.categoryId || null;
     if (data.tags !== undefined) updateData.tags = data.tags;
     if (data.seoTitle !== undefined) updateData.seoTitle = data.seoTitle.trim();
     if (data.seoDescription !== undefined) updateData.seoDescription = data.seoDescription.trim();

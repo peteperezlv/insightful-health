@@ -571,21 +571,19 @@ const postKeywords = Array.isArray(post.seoKeywords) ? post.seoKeywords.join(', 
             id="category"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
           >
-            <option value="">Select a category</option>
-            {categories.length > 0 ? (
-              categories.map((cat) => (
-                <option value={cat.id} selected={cat.id === post.categoryId}>{cat.name}</option>
-              ))
-            ) : (
-              <>
-                <option value="health-policy" selected={post.categoryId === 'health-policy'}>Health Policy</option>
-                <option value="epidemiology" selected={post.categoryId === 'epidemiology'}>Epidemiology</option>
-                <option value="mental-health" selected={post.categoryId === 'mental-health'}>Mental Health</option>
-                <option value="nutrition" selected={post.categoryId === 'nutrition'}>Nutrition</option>
-                <option value="research" selected={post.categoryId === 'research'}>Research</option>
-              </>
-            )}
+            <option value="">None</option>
+            {categories.map((cat) => (
+              <option value={cat.id} selected={cat.id === post.categoryId}>
+                {cat.name}
+              </option>
+            ))}
           </select>
+          <p class="mt-1 text-xs text-gray-500">
+            Categorize your post for better organization.
+            {categories.length === 0 && (
+              <span class="text-yellow-600"> No categories available. Ask an admin to create categories.</span>
+            )}
+          </p>
         </div>
 
         <!-- Tags -->

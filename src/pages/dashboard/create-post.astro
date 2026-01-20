@@ -527,21 +527,17 @@ try {
             id="category"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
           >
-            <option value="">Select a category</option>
-            {categories.length > 0 ? (
-              categories.map((cat) => (
-                <option value={cat.id}>{cat.name}</option>
-              ))
-            ) : (
-              <>
-                <option value="health-policy">Health Policy</option>
-                <option value="epidemiology">Epidemiology</option>
-                <option value="mental-health">Mental Health</option>
-                <option value="nutrition">Nutrition</option>
-                <option value="research">Research</option>
-              </>
-            )}
+            <option value="">None</option>
+            {categories.map((cat) => (
+              <option value={cat.id}>{cat.name}</option>
+            ))}
           </select>
+          <p class="mt-1 text-xs text-gray-500">
+            Categorize your post for better organization.
+            {categories.length === 0 && (
+              <span class="text-yellow-600"> No categories available. Ask an admin to create categories.</span>
+            )}
+          </p>
         </div>
 
         <!-- Tags -->
