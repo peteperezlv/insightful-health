@@ -97,6 +97,18 @@ const structuredData = {
       </div>
     )}
 
+    <!-- Featured Image -->
+    {post.featuredImageUrl && (
+      <div class="mb-8 -mx-4 sm:-mx-6 lg:-mx-8 aspect-video overflow-hidden">
+        <img 
+          src={post.featuredImageUrl} 
+          alt={`Featured image for ${post.title}`}
+          class="w-full h-full object-cover"
+          loading="eager"
+        />
+      </div>
+    )}
+
     <!-- Post Header -->
     <header class="mb-12 border-b border-gray-200 pb-8">
       {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (

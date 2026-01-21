@@ -200,7 +200,20 @@ if (totalPages > 1) {
           ) : (
             <div class="space-y-6">
               {posts.map((post) => (
-                <article class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <article class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                  {post.featuredImageUrl && (
+                    <div class="aspect-video overflow-hidden">
+                      <a href={`/post/${post.slug}`} class="block">
+                        <img 
+                          src={post.featuredImageUrl} 
+                          alt={`Featured image for ${post.title}`}
+                          class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      </a>
+                    </div>
+                  )}
+                  <div class="p-6">
                   <div class="flex justify-between items-start gap-4 mb-3">
                     <h3>
                       <a
@@ -240,6 +253,7 @@ if (totalPages > 1) {
                     >
                       Read →
                     </a>
+                  </div>
                   </div>
                 </article>
               ))}

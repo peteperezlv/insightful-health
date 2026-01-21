@@ -1357,5 +1357,92 @@
     "createRule": "",
     "updateRule": null,
     "deleteRule": "@request.auth.role = 'admin'"
+  },
+  {
+    "name": "media",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "name": "file",
+        "type": "file",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "mimeTypes": [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif",
+            "image/webp"
+          ],
+          "thumbs": [
+            "100x100",
+            "300x300",
+            "800x600"
+          ],
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "protected": false
+        }
+      },
+      {
+        "name": "uploadedBy",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "users",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": ["username", "email"]
+        }
+      },
+      {
+        "name": "fileName",
+        "type": "text",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "name": "fileSize",
+        "type": "number",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "noDecimal": true
+        }
+      },
+      {
+        "name": "mimeType",
+        "type": "text",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": "@request.auth.id != \"\"",
+    "viewRule": "@request.auth.id != \"\"",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id = uploadedBy.id || @request.auth.role = 'admin'",
+    "deleteRule": "@request.auth.id = uploadedBy.id || @request.auth.role = 'admin'"
   }
 ]
