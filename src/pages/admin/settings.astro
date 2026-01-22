@@ -455,7 +455,7 @@ let settings: any = {
 
   tabButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      const tabName = button.dataset.tab;
+      const tabName = (button as HTMLElement).dataset.tab;
 
       // Update button styles
       tabButtons.forEach((btn) => {

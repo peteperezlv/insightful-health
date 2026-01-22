@@ -265,6 +265,13 @@ const structuredData = {
   <script>
     import { trackPageView, trackLike } from '../../lib/analytics';
 
+    // Declare global type for window.__POST_ID__
+    declare global {
+      interface Window {
+        __POST_ID__: string;
+      }
+    }
+
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', () => {
       const postId = window.__POST_ID__;
@@ -275,7 +282,9 @@ const structuredData = {
         trackPageView(postId);
       }
 
-      const likeButton = document.getElementById('like-button');
+      const likeButton = document.getElementById(
+        'like-button',
+      ) as HTMLButtonElement | null;
       const likeCount = document.getElementById('like-count');
 
       if (likeButton && likeCount) {
@@ -297,6 +306,8 @@ const structuredData = {
         }
 
         function updateButtonState() {
+          if (!likeButton) return;
+
           if (isLiked) {
             likeButton.classList.add(
               'bg-emerald-100',
@@ -315,7 +326,7 @@ const structuredData = {
         }
 
         likeButton.addEventListener('click', async () => {
-          if (isLoading) return;
+          if (isLoading || !likeButton || !likeCount) return;
 
           isLoading = true;
           likeButton.disabled = true;

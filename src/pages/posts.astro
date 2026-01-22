@@ -307,14 +307,7 @@ if (totalPages > 1) {
 
             {paginationItems.map((item, index) => {
               if (item.type === 'ellipsis') {
-                return (
-                  <span
-                    key={`ellipsis-${index}`}
-                    class="px-4 py-2 text-gray-400"
-                  >
-                    ...
-                  </span>
-                );
+                return <span class="px-4 py-2 text-gray-400">...</span>;
               }
 
               const pageUrl = new URL(url);
@@ -322,7 +315,6 @@ if (totalPages > 1) {
 
               return (
                 <a
-                  key={`page-${item.page}`}
                   href={pageUrl.pathname + pageUrl.search}
                   class={`px-4 py-2 border rounded ${
                     item.active
