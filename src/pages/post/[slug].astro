@@ -36,13 +36,20 @@ const wordCount = post.content ? post.content.split(/\s+/).length : 0;
 const readingTime = Math.ceil(wordCount / 200) || 1;
 
 // Prepare SEO data
-const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://insightfulhealth.com';
+const siteUrl =
+  import.meta.env.PUBLIC_SITE_URL || 'https://insightfulhealth.com';
 const postUrl = `${siteUrl}/post/${post.slug}`;
 const seoTitle = post.seoTitle || post.title;
-const seoDescription = post.seoDescription || post.excerpt || (post.content ? post.content.substring(0, 160) : '');
-const ogImage = post.featuredImageUrl || post.ogImageUrl || `${siteUrl}/og-image.jpg`;
+const seoDescription =
+  post.seoDescription ||
+  post.excerpt ||
+  (post.content ? post.content.substring(0, 160) : '');
+const ogImage =
+  post.featuredImageUrl || post.ogImageUrl || `${siteUrl}/og-image.jpg`;
 const canonicalUrl = post.canonicalUrl || postUrl;
-const keywords = Array.isArray(post.seoKeywords) ? post.seoKeywords.join(', ') : (post.seoKeywords || '');
+const keywords = Array.isArray(post.seoKeywords)
+  ? post.seoKeywords.join(', ')
+  : post.seoKeywords || '';
 
 // Structured data for SEO (JSON-LD)
 const structuredData = {
@@ -55,22 +62,22 @@ const structuredData = {
   dateModified: post.updated,
   author: {
     '@type': 'Person',
-    name: post.authorName || 'Anonymous'
+    name: post.authorName || 'Anonymous',
   },
   publisher: {
     '@type': 'Organization',
     name: 'Insightful Health',
     logo: {
       '@type': 'ImageObject',
-      url: `${siteUrl}/logo.png`
-    }
+      url: `${siteUrl}/logo.png`,
+    },
   },
   mainEntityOfPage: {
     '@type': 'WebPage',
-    '@id': postUrl
+    '@id': postUrl,
   },
   wordCount: wordCount,
-  keywords: keywords
+  keywords: keywords,
 };
 ---
 
@@ -85,62 +92,84 @@ const structuredData = {
   url={postUrl}
 >
   <!-- Structured Data (JSON-LD) -->
-  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(structuredData)}
+  />
 
   <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Draft Indicator (only visible to authorized users) -->
-    {post.status === 'draft' && canViewDraft && (
-      <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <p class="text-yellow-800 font-medium">
-          ⚠️ This is a draft post. Only you can see it.
-        </p>
-      </div>
-    )}
+    {
+      post.status === 'draft' && canViewDraft && (
+        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p class="text-yellow-800 font-medium">
+            ⚠️ This is a draft post. Only you can see it.
+          </p>
+        </div>
+      )
+    }
 
     <!-- Featured Image -->
-    {post.featuredImageUrl && (
-      <div class="mb-8 -mx-4 sm:-mx-6 lg:-mx-8 aspect-video overflow-hidden">
-        <img 
-          src={post.featuredImageUrl} 
-          alt={`Featured image for ${post.title}`}
-          class="w-full h-full object-cover"
-          loading="eager"
-        />
-      </div>
-    )}
+    {
+      post.featuredImageUrl && (
+        <div class="mb-8 -mx-4 sm:-mx-6 lg:-mx-8 aspect-video overflow-hidden">
+          <img
+            src={post.featuredImageUrl}
+            alt={`Featured image for ${post.title}`}
+            class="w-full h-full object-cover"
+            loading="eager"
+          />
+        </div>
+      )
+    }
 
     <!-- Post Header -->
     <header class="mb-12 border-b border-gray-200 pb-8">
-      {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
-        <div class="mb-4 flex gap-2 flex-wrap">
-          {post.tags.map((tag) => (
-            <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
+      {
+        post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
+          <div class="mb-4 flex gap-2 flex-wrap">
+            {post.tags.map((tag) => (
+              <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )
+      }
 
       <h1 class="mb-4">{post.title}</h1>
 
       <div class="flex flex-wrap gap-6 text-sm text-gray-600">
         <div>
-          <span class="font-semibold text-gray-900">{post.authorName || 'Anonymous'}</span>
+          <span class="font-semibold text-gray-900"
+            >{post.authorName || 'Anonymous'}</span
+          >
         </div>
         <div>
           <span class="font-semibold text-gray-900">Published</span>
-          <p class="text-xs">{new Date(post.publishedAt || post.created).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          <p class="text-xs">
+            {
+              new Date(post.publishedAt || post.created).toLocaleDateString(
+                'en-US',
+                { month: 'long', day: 'numeric', year: 'numeric' },
+              )
+            }
+          </p>
         </div>
         <div>
           <span class="font-semibold text-gray-900">Reading Time</span>
-          <p class="text-xs">{readingTime} minute{readingTime !== 1 ? 's' : ''}</p>
+          <p class="text-xs">
+            {readingTime} minute{readingTime !== 1 ? 's' : ''}
+          </p>
         </div>
-        {post.viewCount !== undefined && (
-          <div>
-            <span class="font-semibold text-gray-900">Views</span>
-            <p class="text-xs">{post.viewCount.toLocaleString()}</p>
-          </div>
-        )}
+        {
+          post.viewCount !== undefined && (
+            <div>
+              <span class="font-semibold text-gray-900">Views</span>
+              <p class="text-xs">{post.viewCount.toLocaleString()}</p>
+            </div>
+          )
+        }
       </div>
     </header>
 
@@ -166,7 +195,9 @@ const structuredData = {
         </div>
         <div>
           <h4 class="text-sm font-semibold text-gray-600 mb-2">Comments</h4>
-          <span class="text-2xl font-bold text-emerald-600">{post.commentCount || 0}</span>
+          <span class="text-2xl font-bold text-emerald-600"
+            >{post.commentCount || 0}</span
+          >
         </div>
         <div>
           <h4 class="text-sm font-semibold text-gray-600 mb-2">Share</h4>
@@ -179,18 +210,20 @@ const structuredData = {
         <div>
           <h4 class="text-sm font-semibold text-gray-600 mb-2">Tags</h4>
           <div class="flex flex-wrap gap-1">
-            {post.tags && Array.isArray(post.tags) && post.tags.length > 0 ? (
-              post.tags.map((tag: string) => (
-                <a
-                  href={`/tag/${tag.toLowerCase().replace(/\s+/g, '-')}`}
-                  class="px-2 py-1 bg-white border border-gray-300 rounded text-xs hover:bg-gray-50"
-                >
-                  {tag}
-                </a>
-              ))
-            ) : (
-              <span class="text-xs text-gray-500">No tags</span>
-            )}
+            {
+              post.tags && Array.isArray(post.tags) && post.tags.length > 0 ? (
+                post.tags.map((tag: string) => (
+                  <a
+                    href={`/tag/${tag.toLowerCase().replace(/\s+/g, '-')}`}
+                    class="px-2 py-1 bg-white border border-gray-300 rounded text-xs hover:bg-gray-50"
+                  >
+                    {tag}
+                  </a>
+                ))
+              ) : (
+                <span class="text-xs text-gray-500">No tags</span>
+              )
+            }
           </div>
         </div>
       </div>
@@ -202,13 +235,15 @@ const structuredData = {
         <div
           class="w-16 h-16 bg-emerald-600 rounded-full flex-shrink-0 flex items-center justify-center text-white text-2xl font-bold"
         >
-          {post.authorName ? post.authorName.substring(0, 2).toUpperCase() : 'A'}
+          {
+            post.authorName
+              ? post.authorName.substring(0, 2).toUpperCase()
+              : 'A'
+          }
         </div>
         <div>
           <h3 class="font-semibold mb-2">{post.authorName || 'Anonymous'}</h3>
-          <p class="text-gray-600 text-sm mb-3">
-            Author of this article.
-          </p>
+          <p class="text-gray-600 text-sm mb-3">Author of this article.</p>
         </div>
       </div>
     </section>
@@ -218,7 +253,6 @@ const structuredData = {
       <CommentForm postId={post.id} />
       <CommentList postId={post.id} />
     </section>
-
   </article>
 
   <!-- Pass postId to client-side scripts -->
@@ -230,20 +264,20 @@ const structuredData = {
   <!-- Main client-side script -->
   <script>
     import { trackPageView, trackLike } from '../../lib/analytics';
-    
+
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', () => {
       const postId = window.__POST_ID__;
-      
+
       // Track page view for this post
       console.log('[Post Page] Tracking page view with postId:', postId);
       if (postId) {
         trackPageView(postId);
       }
-      
+
       const likeButton = document.getElementById('like-button');
       const likeCount = document.getElementById('like-count');
-      
+
       if (likeButton && likeCount) {
         let isLiked = false;
         let isLoading = false;
@@ -264,10 +298,18 @@ const structuredData = {
 
         function updateButtonState() {
           if (isLiked) {
-            likeButton.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-700');
+            likeButton.classList.add(
+              'bg-emerald-100',
+              'border-emerald-500',
+              'text-emerald-700',
+            );
             likeButton.classList.remove('border-gray-300');
           } else {
-            likeButton.classList.remove('bg-emerald-100', 'border-emerald-500', 'text-emerald-700');
+            likeButton.classList.remove(
+              'bg-emerald-100',
+              'border-emerald-500',
+              'text-emerald-700',
+            );
             likeButton.classList.add('border-gray-300');
           }
         }
@@ -310,10 +352,10 @@ const structuredData = {
                 isLiked = true;
                 likeCount.textContent = data.likeCount;
                 updateButtonState();
-                
+
                 // Track like event
                 trackLike(postId);
-                
+
                 // Add animation
                 likeButton.classList.add('scale-110');
                 setTimeout(() => {
