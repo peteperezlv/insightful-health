@@ -35,6 +35,7 @@ jobs:
         env:
           PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
           PUBLIC_POCKETBASE_URL: ${{ secrets.PUBLIC_POCKETBASE_URL }}
+          PUBLIC_SITE_DESCRIPTION: Public health data analytics and insights
 
           # OAuth Credentials - Google (development)
           PRIVATE_OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.PRIVATE_OAUTH_GOOGLE_CLIENT_ID }}
