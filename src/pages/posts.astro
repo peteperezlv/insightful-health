@@ -227,8 +227,8 @@ if (totalPages > 1) {
               {posts.map((post) => (
                 <article class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                   {post.featuredImageUrl && (
-                    <div class="aspect-video overflow-hidden">
-                      <a href={`/post/${post.slug}`} class="block">
+                    <div class="aspect-video overflow-hidden max-h-64">
+                      <a href={`/post/${post.slug}`} class="block h-full">
                         <img
                           src={post.featuredImageUrl}
                           alt={`Featured image for ${post.title}`}
