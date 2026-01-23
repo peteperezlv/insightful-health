@@ -59,8 +59,17 @@ try {
           href="/dashboard"
           class="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center"
         >
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
           Back to Dashboard
         </a>
@@ -74,7 +83,12 @@ try {
 
     <!-- Post Form -->
     <form id="create-post-form" class="space-y-8">
-      <input type="hidden" name="csrf-token" id="csrf-token" value={csrfToken} />
+      <input
+        type="hidden"
+        name="csrf-token"
+        id="csrf-token"
+        value={csrfToken}
+      />
 
       <!-- Title -->
       <div>
@@ -109,7 +123,9 @@ try {
           Slug
         </label>
         <div class="mt-1 flex rounded-md shadow-sm">
-          <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+          <span
+            class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
+          >
             /post/
           </span>
           <input
@@ -137,8 +153,7 @@ try {
           rows="3"
           maxlength="300"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm transition-colors"
-          placeholder="Brief summary of your post..."
-        ></textarea>
+          placeholder="Brief summary of your post..."></textarea>
         <div class="mt-1 flex justify-between items-start">
           <div>
             <p class="text-xs text-gray-500">
@@ -196,14 +211,35 @@ try {
             <div class="editor-toolbar" id="editor-toolbar">
               <!-- Undo/Redo -->
               <div class="editor-toolbar-group">
-                <button type="button" class="editor-toolbar-btn" data-action="undo" title="Undo (Ctrl+Z)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 10h10a5 5 0 0 1 5 5v2M3 10l4-4M3 10l4 4"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="undo"
+                  title="Undo (Ctrl+Z)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M3 10h10a5 5 0 0 1 5 5v2M3 10l4-4M3 10l4 4"></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="redo" title="Redo (Ctrl+Shift+Z)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10H11a5 5 0 0 0-5 5v2M21 10l-4-4M21 10l-4 4"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="redo"
+                  title="Redo (Ctrl+Shift+Z)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 10H11a5 5 0 0 0-5 5v2M21 10l-4-4M21 10l-4 4"
+                    ></path>
                   </svg>
                 </button>
               </div>
@@ -212,24 +248,53 @@ try {
 
               <!-- Text formatting -->
               <div class="editor-toolbar-group">
-                <button type="button" class="editor-toolbar-btn" data-action="bold" title="Bold (Ctrl+B)">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="bold"
+                  title="Bold (Ctrl+B)"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6 4h8a4 4 0 0 1 2.646 7.001A4.5 4.5 0 0 1 15.5 20H6V4zm3 3v4h5a1.5 1.5 0 0 0 0-3H9zm0 7v4h6.5a2 2 0 0 0 0-4H9z"/>
+                    <path
+                      d="M6 4h8a4 4 0 0 1 2.646 7.001A4.5 4.5 0 0 1 15.5 20H6V4zm3 3v4h5a1.5 1.5 0 0 0 0-3H9zm0 7v4h6.5a2 2 0 0 0 0-4H9z"
+                    ></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="italic" title="Italic (Ctrl+I)">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="italic"
+                  title="Italic (Ctrl+I)"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M15 4H9v2h2.5l-3 12H6v2h6v-2h-2.5l3-12H15V4z"/>
+                    <path d="M15 4H9v2h2.5l-3 12H6v2h6v-2h-2.5l3-12H15V4z"
+                    ></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="underline" title="Underline (Ctrl+U)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M7 5v6a5 5 0 0 0 10 0V5M5 19h14"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="underline"
+                  title="Underline (Ctrl+U)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M7 5v6a5 5 0 0 0 10 0V5M5 19h14"></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="strike" title="Strikethrough">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="strike"
+                  title="Strikethrough"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13 9h-2V6h2v3zM13 18h-2v-3h2v3zM4 12h16v2H4v-2z"/>
+                    <path d="M13 9h-2V6h2v3zM13 18h-2v-3h2v3zM4 12h16v2H4v-2z"
+                    ></path>
                   </svg>
                 </button>
               </div>
@@ -238,7 +303,11 @@ try {
 
               <!-- Headings -->
               <div class="editor-toolbar-group">
-                <select id="heading-select" class="editor-toolbar-select" title="Heading Level">
+                <select
+                  id="heading-select"
+                  class="editor-toolbar-select"
+                  title="Heading Level"
+                >
                   <option value="paragraph">Paragraph</option>
                   <option value="1">Heading 1</option>
                   <option value="2">Heading 2</option>
@@ -251,19 +320,40 @@ try {
 
               <!-- Text alignment -->
               <div class="editor-toolbar-group">
-                <button type="button" class="editor-toolbar-btn" data-action="alignLeft" title="Align Left">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="alignLeft"
+                  title="Align Left"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 4h18v2H3V4zm0 4h12v2H3V8zm0 4h18v2H3v-2zm0 4h12v2H3v-2zm0 4h18v2H3v-2z"/>
+                    <path
+                      d="M3 4h18v2H3V4zm0 4h12v2H3V8zm0 4h18v2H3v-2zm0 4h12v2H3v-2zm0 4h18v2H3v-2z"
+                    ></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="alignCenter" title="Align Center">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="alignCenter"
+                  title="Align Center"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 4h18v2H3V4zm3 4h12v2H6V8zm-3 4h18v2H3v-2zm3 4h12v2H6v-2zm-3 4h18v2H3v-2z"/>
+                    <path
+                      d="M3 4h18v2H3V4zm3 4h12v2H6V8zm-3 4h18v2H3v-2zm3 4h12v2H6v-2zm-3 4h18v2H3v-2z"
+                    ></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="alignRight" title="Align Right">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="alignRight"
+                  title="Align Right"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 4h18v2H3V4zm6 4h12v2H9V8zm-6 4h18v2H3v-2zm6 4h12v2H9v-2zm-6 4h18v2H3v-2z"/>
+                    <path
+                      d="M3 4h18v2H3V4zm6 4h12v2H9V8zm-6 4h18v2H3v-2zm6 4h12v2H9v-2zm-6 4h18v2H3v-2z"
+                    ></path>
                   </svg>
                 </button>
               </div>
@@ -272,19 +362,39 @@ try {
 
               <!-- Lists -->
               <div class="editor-toolbar-group">
-                <button type="button" class="editor-toolbar-btn" data-action="bulletList" title="Bullet List">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="bulletList"
+                  title="Bullet List"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 6h14v2H8V6zm0 5h14v2H8v-2zm0 5h14v2H8v-2zM3 5.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm0 5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm0 5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+                    <path
+                      d="M8 6h14v2H8V6zm0 5h14v2H8v-2zm0 5h14v2H8v-2zM3 5.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm0 5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm0 5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"
+                    ></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="orderedList" title="Numbered List">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="orderedList"
+                  title="Numbered List"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 6h14v2H8V6zm0 5h14v2H8v-2zm0 5h14v2H8v-2zM3 5v2h2V5H3zm0 5v2h2v-2H3zm0 5v2h2v-2H3z"/>
+                    <path
+                      d="M8 6h14v2H8V6zm0 5h14v2H8v-2zm0 5h14v2H8v-2zM3 5v2h2V5H3zm0 5v2h2v-2H3zm0 5v2h2v-2H3z"
+                    ></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="blockquote" title="Blockquote">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="blockquote"
+                  title="Blockquote"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z"/>
+                    <path d="M6 17h3l2-4V7H5v6h3l-2 4zm8 0h3l2-4V7h-6v6h3l-2 4z"
+                    ></path>
                   </svg>
                 </button>
               </div>
@@ -293,28 +403,72 @@ try {
 
               <!-- Code & Links -->
               <div class="editor-toolbar-group">
-                <button type="button" class="editor-toolbar-btn" data-action="code" title="Inline Code">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="code"
+                  title="Inline Code"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="codeBlock" title="Code Block">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <path d="M8 10l-2 2 2 2M16 10l2 2-2 2M13 7l-2 10"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="codeBlock"
+                  title="Code Block"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <path d="M8 10l-2 2 2 2M16 10l2 2-2 2M13 7l-2 10"></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="link" title="Insert Link (Ctrl+K)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="link"
+                  title="Insert Link (Ctrl+K)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                    ></path>
+                    <path
+                      d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                    ></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="image" title="Insert Image">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <path d="M21 15l-5-5L5 21"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="image"
+                  title="Insert Image"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <path d="M21 15l-5-5L5 21"></path>
                   </svg>
                 </button>
               </div>
@@ -323,14 +477,29 @@ try {
 
               <!-- Horizontal Rule -->
               <div class="editor-toolbar-group">
-                <button type="button" class="editor-toolbar-btn" data-action="hr" title="Horizontal Rule">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="hr"
+                  title="Horizontal Rule"
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M2 11h20v2H2z"/>
+                    <path d="M2 11h20v2H2z"></path>
                   </svg>
                 </button>
-                <button type="button" class="editor-toolbar-btn" data-action="clearFormat" title="Clear Formatting">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M7 21l10-18M5 7h9M10 17h9"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="clearFormat"
+                  title="Clear Formatting"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M7 21l10-18M5 7h9M10 17h9"></path>
                   </svg>
                 </button>
               </div>
@@ -339,9 +508,22 @@ try {
 
               <!-- Fullscreen -->
               <div class="editor-toolbar-group">
-                <button type="button" class="editor-toolbar-btn" data-action="fullscreen" title="Toggle Fullscreen">
-                  <svg id="fullscreen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="fullscreen"
+                  title="Toggle Fullscreen"
+                >
+                  <svg
+                    id="fullscreen-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
+                    ></path>
                   </svg>
                 </button>
               </div>
@@ -370,28 +552,66 @@ try {
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <!-- Markdown Input -->
               <div class="border border-gray-300 rounded-md overflow-hidden">
-                <div class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between">
-                  <span class="text-sm font-medium text-gray-700">Markdown</span>
+                <div
+                  class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between"
+                >
+                  <span class="text-sm font-medium text-gray-700">Markdown</span
+                  >
                   <div class="flex items-center space-x-2">
-                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="**" title="Bold">
+                    <button
+                      type="button"
+                      class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      data-md="**"
+                      title="Bold"
+                    >
                       <strong>B</strong>
                     </button>
-                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="*" title="Italic">
+                    <button
+                      type="button"
+                      class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      data-md="*"
+                      title="Italic"
+                    >
                       <em>I</em>
                     </button>
-                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="~~" title="Strikethrough">
+                    <button
+                      type="button"
+                      class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      data-md="~~"
+                      title="Strikethrough"
+                    >
                       <s>S</s>
                     </button>
-                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md-line="# " title="Heading">
+                    <button
+                      type="button"
+                      class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      data-md-line="# "
+                      title="Heading"
+                    >
                       H
                     </button>
-                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="[](url)" title="Link">
+                    <button
+                      type="button"
+                      class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      data-md="[](url)"
+                      title="Link"
+                    >
                       🔗
                     </button>
-                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="![alt](url)" title="Image">
+                    <button
+                      type="button"
+                      class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      data-md="![alt](url)"
+                      title="Image"
+                    >
                       🖼
                     </button>
-                    <button type="button" class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" data-md="`" title="Code">
+                    <button
+                      type="button"
+                      class="md-btn text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      data-md="`"
+                      title="Code"
+                    >
                       &lt;/&gt;
                     </button>
                   </div>
@@ -399,23 +619,42 @@ try {
                 <textarea
                   id="markdown-input"
                   class="w-full h-96 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Write your content in Markdown...&#10;&#10;# Heading 1&#10;## Heading 2&#10;&#10;**bold** and *italic* text&#10;&#10;- List item 1&#10;- List item 2&#10;&#10;[Link text](https://example.com)&#10;&#10;![Image alt](image-url)"
+                  placeholder="Write your content in Markdown...
+
+# Heading 1
+## Heading 2
+
+**bold** and *italic* text
+
+- List item 1
+- List item 2
+
+[Link text](https://example.com)
+
+![Image alt](image-url)"
                 ></textarea>
               </div>
-              
+
               <!-- Markdown Preview -->
               <div class="border border-gray-300 rounded-md overflow-hidden">
                 <div class="bg-gray-50 px-4 py-2 border-b border-gray-300">
                   <span class="text-sm font-medium text-gray-700">Preview</span>
                 </div>
-                <div id="markdown-preview" class="prose prose-emerald max-w-none h-96 p-4 overflow-y-auto bg-white">
-                  <p class="text-gray-400 italic">Preview will appear here...</p>
+                <div
+                  id="markdown-preview"
+                  class="prose prose-emerald max-w-none h-96 p-4 overflow-y-auto bg-white"
+                >
+                  <p class="text-gray-400 italic">
+                    Preview will appear here...
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <!-- Markdown Footer -->
-            <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+            <div
+              class="mt-2 flex items-center justify-between text-xs text-gray-500"
+            >
               <span>Supports GitHub Flavored Markdown</span>
               <div class="flex items-center space-x-4">
                 <span><span id="md-char-count">0</span> characters</span>
@@ -430,13 +669,25 @@ try {
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <!-- HTML Input -->
               <div class="border border-gray-300 rounded-md overflow-hidden">
-                <div class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between">
+                <div
+                  class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between"
+                >
                   <span class="text-sm font-medium text-gray-700">HTML</span>
                   <div class="flex items-center space-x-2">
-                    <button type="button" id="format-html-btn" class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" title="Format HTML">
+                    <button
+                      type="button"
+                      id="format-html-btn"
+                      class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      title="Format HTML"
+                    >
                       Format
                     </button>
-                    <button type="button" id="validate-html-btn" class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300" title="Validate HTML">
+                    <button
+                      type="button"
+                      id="validate-html-btn"
+                      class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                      title="Validate HTML"
+                    >
                       Validate
                     </button>
                   </div>
@@ -444,25 +695,43 @@ try {
                 <textarea
                   id="html-input"
                   class="w-full h-96 p-4 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Enter raw HTML content...&#10;&#10;<h1>Heading</h1>&#10;<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>&#10;<ul>&#10;  <li>List item 1</li>&#10;  <li>List item 2</li>&#10;</ul>"
+                  placeholder="Enter raw HTML content...
+
+<h1>Heading</h1>
+<p>Paragraph with <strong>bold</strong> and <em>italic</em> text.</p>
+<ul>
+  <li>List item 1</li>
+  <li>List item 2</li>
+</ul>"
                 ></textarea>
               </div>
-              
+
               <!-- HTML Preview -->
               <div class="border border-gray-300 rounded-md overflow-hidden">
-                <div class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between">
+                <div
+                  class="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center justify-between"
+                >
                   <span class="text-sm font-medium text-gray-700">Preview</span>
                   <span id="html-validation-status" class="text-xs"></span>
                 </div>
-                <div id="html-preview" class="prose prose-emerald max-w-none h-96 p-4 overflow-y-auto bg-white">
-                  <p class="text-gray-400 italic">Preview will appear here...</p>
+                <div
+                  id="html-preview"
+                  class="prose prose-emerald max-w-none h-96 p-4 overflow-y-auto bg-white"
+                >
+                  <p class="text-gray-400 italic">
+                    Preview will appear here...
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <!-- HTML Footer -->
-            <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
-              <span class="text-yellow-600">⚠️ HTML is sanitized before saving to prevent XSS attacks</span>
+            <div
+              class="mt-2 flex items-center justify-between text-xs text-gray-500"
+            >
+              <span class="text-yellow-600"
+                >⚠️ HTML is sanitized before saving to prevent XSS attacks</span
+              >
               <div class="flex items-center space-x-4">
                 <span><span id="html-char-count">0</span> characters</span>
                 <span><span id="html-word-count">0</span> words</span>
@@ -470,13 +739,14 @@ try {
               </div>
             </div>
           </div>
-          
+
           <!-- Hidden input to store content for form submission -->
           <input type="hidden" name="content" id="content-input" value="" />
         </div>
         <div class="mt-1 flex justify-between items-start">
           <p class="text-xs text-gray-500">
-            Use the toolbar above or keyboard shortcuts for formatting. Switch between Visual, Markdown, or HTML mode.
+            Use the toolbar above or keyboard shortcuts for formatting. Switch
+            between Visual, Markdown, or HTML mode.
           </p>
           <span class="text-xs text-gray-400">
             <span id="content-char-count">0</span>/50000 chars
@@ -490,31 +760,74 @@ try {
         <label class="block text-sm font-medium text-gray-700">
           Featured Image
         </label>
-        
+
         <!-- File Upload -->
         <div class="mt-2">
           <div class="flex items-center justify-center w-full">
-            <label for="featured-image-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-              <div class="flex flex-col items-center justify-center pt-5 pb-6" id="upload-placeholder">
-                <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            <label
+              for="featured-image-file"
+              class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+            >
+              <div
+                class="flex flex-col items-center justify-center pt-5 pb-6"
+                id="upload-placeholder"
+              >
+                <svg
+                  class="w-10 h-10 mb-3 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  ></path>
                 </svg>
-                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP (MAX. 5MB)</p>
+                <p class="mb-2 text-sm text-gray-500">
+                  <span class="font-semibold">Click to upload</span> or drag and drop
+                </p>
+                <p class="text-xs text-gray-500">
+                  PNG, JPG, GIF, WebP (MAX. 5MB)
+                </p>
               </div>
               <div class="hidden" id="upload-progress">
                 <div class="flex items-center">
-                  <svg class="animate-spin h-5 w-5 text-emerald-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    class="animate-spin h-5 w-5 text-emerald-600 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   <span class="text-sm text-gray-600">Uploading...</span>
                 </div>
               </div>
-              <input id="featured-image-file" name="featured-image-file" type="file" class="hidden" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" />
+              <input
+                id="featured-image-file"
+                name="featured-image-file"
+                type="file"
+                class="hidden"
+                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+              />
             </label>
           </div>
-          <p class="mt-1 text-xs text-gray-500">Upload an image from your computer</p>
+          <p class="mt-1 text-xs text-gray-500">
+            Upload an image from your computer
+          </p>
         </div>
 
         <!-- OR Divider -->
@@ -529,7 +842,10 @@ try {
 
         <!-- Image URL Input -->
         <div class="mt-2">
-          <label for="image-url-input" class="block text-xs font-medium text-gray-600 mb-1">
+          <label
+            for="image-url-input"
+            class="block text-xs font-medium text-gray-600 mb-1"
+          >
             Image URL
           </label>
           <input
@@ -538,22 +854,38 @@ try {
             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
             placeholder="https://example.com/image.jpg"
           />
-          <p class="mt-1 text-xs text-gray-500">Or paste a direct URL to an image</p>
+          <p class="mt-1 text-xs text-gray-500">
+            Or paste a direct URL to an image
+          </p>
         </div>
 
         <!-- Image Preview -->
         <div id="image-preview-container" class="mt-4 hidden">
           <div class="flex items-start justify-between mb-2">
             <p class="text-xs font-medium text-gray-700">Preview:</p>
-            <button type="button" id="remove-image-btn" class="text-xs text-red-600 hover:text-red-800">
+            <button
+              type="button"
+              id="remove-image-btn"
+              class="text-xs text-red-600 hover:text-red-800"
+            >
               Remove
             </button>
           </div>
-          <img id="preview-img" src="" alt="Preview" class="max-h-48 rounded-md border border-gray-200" />
+          <img
+            id="preview-img"
+            src=""
+            alt="Preview"
+            class="max-h-48 rounded-md border border-gray-200"
+          />
         </div>
-        
+
         <p id="image-error" class="text-xs text-red-500 mt-1 hidden"></p>
-        <input type="hidden" name="featuredImageUrl" id="featuredImageUrl" value="" />
+        <input
+          type="hidden"
+          name="featuredImageUrl"
+          id="featuredImageUrl"
+          value=""
+        />
       </div>
 
       <!-- Category and Tags -->
@@ -569,15 +901,22 @@ try {
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
           >
             <option value="">None</option>
-            {categories.map((cat) => (
-              <option value={cat.id}>{cat.name}</option>
-            ))}
+            {
+              categories.map((cat) => (
+                <option value={cat.id}>{cat.name}</option>
+              ))
+            }
           </select>
           <p class="mt-1 text-xs text-gray-500">
             Categorize your post for better organization.
-            {categories.length === 0 && (
-              <span class="text-yellow-600"> No categories available. Ask an admin to create categories.</span>
-            )}
+            {
+              categories.length === 0 && (
+                <span class="text-yellow-600">
+                  {' '}
+                  No categories available. Ask an admin to create categories.
+                </span>
+              )
+            }
           </p>
         </div>
 
@@ -614,7 +953,9 @@ try {
               checked
               class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
             />
-            <label for="status-draft" class="ml-2 text-sm text-gray-700">Draft</label>
+            <label for="status-draft" class="ml-2 text-sm text-gray-700"
+              >Draft</label
+            >
           </div>
           <div class="flex items-center">
             <input
@@ -624,7 +965,9 @@ try {
               value="published"
               class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
             />
-            <label for="status-published" class="ml-2 text-sm text-gray-700">Published</label>
+            <label for="status-published" class="ml-2 text-sm text-gray-700"
+              >Published</label
+            >
           </div>
         </div>
       </div>
@@ -637,23 +980,50 @@ try {
           class="w-full flex items-center justify-between p-4 text-left text-gray-700 hover:bg-gray-50"
         >
           <span class="font-medium">SEO Settings</span>
-          <svg class="w-5 h-5 transform transition-transform" id="seo-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          <svg
+            class="w-5 h-5 transform transition-transform"
+            id="seo-chevron"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"></path>
           </svg>
         </button>
-        <div id="seo-panel" class="hidden p-4 border-t border-gray-200 space-y-4">
+        <div
+          id="seo-panel"
+          class="hidden p-4 border-t border-gray-200 space-y-4"
+        >
           <!-- SEO Preview -->
           <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-            <p class="text-xs font-medium text-gray-600 mb-2">Preview in Search Results:</p>
+            <p class="text-xs font-medium text-gray-600 mb-2">
+              Preview in Search Results:
+            </p>
             <div class="space-y-1">
-              <div class="text-blue-600 text-lg font-medium" id="seo-title-preview">Your Post Title | Insightful Health</div>
-              <div class="text-green-700 text-xs">insightfulhealth.com/post/your-slug</div>
-              <div class="text-gray-600 text-sm" id="seo-description-preview">Your post description will appear here...</div>
+              <div
+                class="text-blue-600 text-lg font-medium"
+                id="seo-title-preview"
+              >
+                Your Post Title | Insightful Health
+              </div>
+              <div class="text-green-700 text-xs">
+                insightfulhealth.com/post/your-slug
+              </div>
+              <div class="text-gray-600 text-sm" id="seo-description-preview">
+                Your post description will appear here...
+              </div>
             </div>
           </div>
 
           <div>
-            <label for="seo-title" class="block text-sm font-medium text-gray-700">
+            <label
+              for="seo-title"
+              class="block text-sm font-medium text-gray-700"
+            >
               SEO Title
             </label>
             <input
@@ -665,13 +1035,20 @@ try {
               placeholder="Custom title for search engines (max 60 chars)"
             />
             <div class="mt-1 flex justify-between items-start">
-              <p class="text-xs text-gray-500">Auto-filled from post title. Leave empty to use post title.</p>
+              <p class="text-xs text-gray-500">
+                Auto-filled from post title. Leave empty to use post title.
+              </p>
               <p id="seo-title-error" class="text-xs text-red-500 hidden"></p>
-              <span class="text-xs text-gray-400"><span id="seo-title-count">0</span>/60</span>
+              <span class="text-xs text-gray-400"
+                ><span id="seo-title-count">0</span>/60</span
+              >
             </div>
           </div>
           <div>
-            <label for="seo-description" class="block text-sm font-medium text-gray-700">
+            <label
+              for="seo-description"
+              class="block text-sm font-medium text-gray-700"
+            >
               Meta Description
             </label>
             <textarea
@@ -683,14 +1060,24 @@ try {
               placeholder="Custom description for search engines (max 160 chars)"
             ></textarea>
             <div class="mt-1 flex justify-between items-start">
-              <p class="text-xs text-gray-500">Auto-filled from excerpt. Leave empty to use excerpt.</p>
-              <p id="seo-description-error" class="text-xs text-red-500 hidden"></p>
-              <span class="text-xs text-gray-400"><span id="seo-description-count">0</span>/160</span>
+              <p class="text-xs text-gray-500">
+                Auto-filled from excerpt. Leave empty to use excerpt.
+              </p>
+              <p id="seo-description-error" class="text-xs text-red-500 hidden">
+              </p>
+              <span class="text-xs text-gray-400"
+                ><span id="seo-description-count">0</span>/160</span
+              >
             </div>
           </div>
           <div>
-            <label for="keywords" class="block text-sm font-medium text-gray-700">
-              Keywords <span class="text-gray-500 font-normal">(5-10 recommended)</span>
+            <label
+              for="keywords"
+              class="block text-sm font-medium text-gray-700"
+            >
+              Keywords <span class="text-gray-500 font-normal"
+                >(5-10 recommended)</span
+              >
             </label>
             <input
               type="text"
@@ -699,11 +1086,18 @@ try {
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
               placeholder="public health, analytics, data science"
             />
-            <p class="mt-1 text-xs text-gray-500">Comma-separated keywords for search engines</p>
+            <p class="mt-1 text-xs text-gray-500">
+              Comma-separated keywords for search engines
+            </p>
           </div>
           <div>
-            <label for="canonical-url" class="block text-sm font-medium text-gray-700">
-              Canonical URL <span class="text-gray-500 font-normal">(optional)</span>
+            <label
+              for="canonical-url"
+              class="block text-sm font-medium text-gray-700"
+            >
+              Canonical URL <span class="text-gray-500 font-normal"
+                >(optional)</span
+              >
             </label>
             <input
               type="url"
@@ -712,7 +1106,9 @@ try {
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
               placeholder="https://example.com/original-post"
             />
-            <p class="mt-1 text-xs text-gray-500">If this post was originally published elsewhere</p>
+            <p class="mt-1 text-xs text-gray-500">
+              If this post was originally published elsewhere
+            </p>
           </div>
         </div>
       </div>
@@ -725,13 +1121,26 @@ try {
           class="w-full flex items-center justify-between p-4 text-left text-gray-700 hover:bg-gray-50"
         >
           <span class="font-medium">Schedule Publishing</span>
-          <svg class="w-5 h-5 transform transition-transform" id="schedule-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          <svg
+            class="w-5 h-5 transform transition-transform"
+            id="schedule-chevron"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"></path>
           </svg>
         </button>
         <div id="schedule-panel" class="hidden p-4 border-t border-gray-200">
           <div>
-            <label for="scheduled-for" class="block text-sm font-medium text-gray-700">
+            <label
+              for="scheduled-for"
+              class="block text-sm font-medium text-gray-700"
+            >
               Publish Date & Time
             </label>
             <input
@@ -741,14 +1150,17 @@ try {
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
             />
             <p class="mt-1 text-xs text-gray-500">
-              Leave empty to publish immediately when status is set to "Published".
+              Leave empty to publish immediately when status is set to
+              "Published".
             </p>
           </div>
         </div>
       </div>
 
       <!-- Form Actions -->
-      <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+      <div
+        class="flex items-center justify-between pt-6 border-t border-gray-200"
+      >
         <button
           type="button"
           id="preview-btn"
@@ -779,14 +1191,35 @@ try {
 
   <!-- Preview Modal -->
   <div id="preview-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="preview-backdrop"></div>
-      <div class="inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+    <div
+      class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div
+        class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+        id="preview-backdrop"
+      >
+      </div>
+      <div
+        class="inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6"
+      >
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">Post Preview</h3>
-          <button type="button" id="close-preview" class="text-gray-400 hover:text-gray-500">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <button
+            type="button"
+            id="close-preview"
+            class="text-gray-400 hover:text-gray-500"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
@@ -800,15 +1233,25 @@ try {
 
 <!-- Link Popup Modal -->
 <div id="link-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
-  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="link-backdrop"></div>
-    <div class="inline-block w-full max-w-md px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+  <div
+    class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+  >
+    <div
+      class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+      id="link-backdrop"
+    >
+    </div>
+    <div
+      class="inline-block w-full max-w-md px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6"
+    >
       <div class="mb-4">
         <h3 class="text-lg font-medium text-gray-900">Insert Link</h3>
       </div>
       <div class="space-y-4">
         <div>
-          <label for="link-url" class="block text-sm font-medium text-gray-700">URL</label>
+          <label for="link-url" class="block text-sm font-medium text-gray-700"
+            >URL</label
+          >
           <input
             type="url"
             id="link-url"
@@ -846,15 +1289,25 @@ try {
 
 <!-- Image Insert Modal -->
 <div id="image-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
-  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="image-backdrop"></div>
-    <div class="inline-block w-full max-w-md px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+  <div
+    class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+  >
+    <div
+      class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+      id="image-backdrop"
+    >
+    </div>
+    <div
+      class="inline-block w-full max-w-md px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6"
+    >
       <div class="mb-4">
         <h3 class="text-lg font-medium text-gray-900">Insert Image</h3>
       </div>
       <div class="space-y-4">
         <div>
-          <label for="image-url" class="block text-sm font-medium text-gray-700">Image URL</label>
+          <label for="image-url" class="block text-sm font-medium text-gray-700"
+            >Image URL</label
+          >
           <input
             type="url"
             id="image-url"
@@ -863,7 +1316,9 @@ try {
           />
         </div>
         <div>
-          <label for="image-alt" class="block text-sm font-medium text-gray-700">Alt Text</label>
+          <label for="image-alt" class="block text-sm font-medium text-gray-700"
+            >Alt Text</label
+          >
           <input
             type="text"
             id="image-alt"
@@ -894,17 +1349,33 @@ try {
 
 <script>
   import '../../lib/create-post-editor.ts';
-  
+
   // Handle featured image file upload
-  const fileInput = document.getElementById('featured-image-file') as HTMLInputElement;
-  const imageUrlInput = document.getElementById('image-url-input') as HTMLInputElement;
-  const featuredImageUrlHidden = document.getElementById('featuredImageUrl') as HTMLInputElement;
+  const fileInput = document.getElementById(
+    'featured-image-file',
+  ) as HTMLInputElement;
+  const imageUrlInput = document.getElementById(
+    'image-url-input',
+  ) as HTMLInputElement;
+  const featuredImageUrlHidden = document.getElementById(
+    'featuredImageUrl',
+  ) as HTMLInputElement;
   const previewImg = document.getElementById('preview-img') as HTMLImageElement;
-  const previewContainer = document.getElementById('image-preview-container') as HTMLDivElement;
-  const uploadPlaceholder = document.getElementById('upload-placeholder') as HTMLDivElement;
-  const uploadProgress = document.getElementById('upload-progress') as HTMLDivElement;
-  const imageError = document.getElementById('image-error') as HTMLParagraphElement;
-  const removeBtn = document.getElementById('remove-image-btn') as HTMLButtonElement;
+  const previewContainer = document.getElementById(
+    'image-preview-container',
+  ) as HTMLDivElement;
+  const uploadPlaceholder = document.getElementById(
+    'upload-placeholder',
+  ) as HTMLDivElement;
+  const uploadProgress = document.getElementById(
+    'upload-progress',
+  ) as HTMLDivElement;
+  const imageError = document.getElementById(
+    'image-error',
+  ) as HTMLParagraphElement;
+  const removeBtn = document.getElementById(
+    'remove-image-btn',
+  ) as HTMLButtonElement;
 
   // Handle file selection
   if (fileInput) {
@@ -913,9 +1384,16 @@ try {
       if (!file) return;
 
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedTypes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+      ];
       if (!allowedTypes.includes(file.type)) {
-        imageError.textContent = 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.';
+        imageError.textContent =
+          'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.';
         imageError.classList.remove('hidden');
         return;
       }
@@ -938,7 +1416,9 @@ try {
         const formData = new FormData();
         formData.append('file', file);
 
-        const csrfToken = (document.querySelector('input[name="csrf-token"]') as HTMLInputElement)?.value;
+        const csrfToken = (
+          document.querySelector('input[name="csrf-token"]') as HTMLInputElement
+        )?.value;
         if (csrfToken) {
           formData.append('csrf-token', csrfToken);
         }
@@ -962,7 +1442,6 @@ try {
         previewImg.src = data.url;
         previewContainer.classList.remove('hidden');
         imageUrlInput.value = data.url;
-
       } catch (error: any) {
         console.error('Upload error:', error);
         imageError.textContent = error.message || 'Failed to upload image';
@@ -977,11 +1456,16 @@ try {
   }
 
   // Handle URL input
-  if (imageUrlInput && featuredImageUrlHidden && previewImg && previewContainer) {
+  if (
+    imageUrlInput &&
+    featuredImageUrlHidden &&
+    previewImg &&
+    previewContainer
+  ) {
     imageUrlInput.addEventListener('input', (e) => {
       const url = (e.target as HTMLInputElement).value.trim();
       featuredImageUrlHidden.value = url;
-      
+
       if (url) {
         previewImg.src = url;
         previewContainer.classList.remove('hidden');
@@ -1001,4 +1485,4 @@ try {
     });
   }
 </script>
-  const csrfToken = document.getElementById('csrf-token');
+const csrfToken = document.getElementById('csrf-token');

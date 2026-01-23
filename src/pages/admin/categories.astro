@@ -38,7 +38,10 @@ try {
     <!-- Header -->
     <div class="mb-8 flex justify-between items-center">
       <div>
-        <a href="/admin" class="text-sm text-emerald-600 hover:text-emerald-700 mb-2 inline-block">
+        <a
+          href="/admin"
+          class="text-sm text-emerald-600 hover:text-emerald-700 mb-2 inline-block"
+        >
           ← Back to Admin Dashboard
         </a>
         <h1 class="text-3xl font-bold text-gray-900">Category Management</h1>
@@ -55,101 +58,131 @@ try {
     </div>
 
     <!-- Error Message -->
-    {error && (
-      <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        {error}
-      </div>
-    )}
+    {
+      error && (
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )
+    }
 
     <!-- Categories Table -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Name
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Slug
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Description
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Created
             </th>
-            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th
+              scope="col"
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Actions
             </th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {categories.length === 0 ? (
-            <tr>
-              <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                No categories found. Create your first category to get started.
-              </td>
-            </tr>
-          ) : (
-            categories.map((category) => (
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{category.name}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500">{category.slug}</div>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="text-sm text-gray-500 max-w-md truncate">
-                    {category.description || '—'}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500">
-                    {new Date(category.created).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    class="text-emerald-600 hover:text-emerald-900 mr-4 edit-btn"
-                    data-id={category.id}
-                    data-name={category.name}
-                    data-slug={category.slug}
-                    data-description={category.description || ''}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    class="text-red-600 hover:text-red-900 delete-btn"
-                    data-id={category.id}
-                    data-name={category.name}
-                  >
-                    Delete
-                  </button>
+          {
+            categories.length === 0 ? (
+              <tr>
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                  No categories found. Create your first category to get
+                  started.
                 </td>
               </tr>
-            ))
-          )}
+            ) : (
+              categories.map((category) => (
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">
+                      {category.name}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-500">{category.slug}</div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="text-sm text-gray-500 max-w-md truncate">
+                      {category.description || '—'}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-500">
+                      {new Date(category.created).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      class="text-emerald-600 hover:text-emerald-900 mr-4 edit-btn"
+                      data-id={category.id}
+                      data-name={category.name}
+                      data-slug={category.slug}
+                      data-description={category.description || ''}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      class="text-red-600 hover:text-red-900 delete-btn"
+                      data-id={category.id}
+                      data-name={category.name}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )
+          }
         </tbody>
       </table>
     </div>
   </div>
 
   <!-- Create/Edit Modal -->
-  <div id="category-modal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+  <div
+    id="category-modal"
+    class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
+  >
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
       <div class="px-6 py-4 border-b border-gray-200">
-        <h3 id="modal-title" class="text-lg font-medium text-gray-900">New Category</h3>
+        <h3 id="modal-title" class="text-lg font-medium text-gray-900">
+          New Category
+        </h3>
       </div>
       <form id="category-form" class="px-6 py-4">
         <input type="hidden" id="category-id" />
-        
+
         <div class="mb-4">
-          <label for="category-name" class="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            for="category-name"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >
             Name <span class="text-red-500">*</span>
           </label>
           <input
@@ -162,7 +195,10 @@ try {
         </div>
 
         <div class="mb-4">
-          <label for="category-slug" class="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            for="category-slug"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >
             Slug <span class="text-red-500">*</span>
           </label>
           <input
@@ -172,19 +208,23 @@ try {
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             placeholder="e.g., health-analytics"
           />
-          <p class="mt-1 text-xs text-gray-500">URL-friendly version (auto-generated from name)</p>
+          <p class="mt-1 text-xs text-gray-500">
+            URL-friendly version (auto-generated from name)
+          </p>
         </div>
 
         <div class="mb-4">
-          <label for="category-description" class="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            for="category-description"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >
             Description
           </label>
           <textarea
             id="category-description"
             rows="3"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            placeholder="Optional description..."
-          ></textarea>
+            placeholder="Optional description..."></textarea>
         </div>
 
         <div id="form-error" class="hidden mb-4 text-sm text-red-600"></div>
@@ -210,13 +250,18 @@ try {
   </div>
 
   <!-- Delete Confirmation Modal -->
-  <div id="delete-modal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+  <div
+    id="delete-modal"
+    class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
+  >
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
       <div class="px-6 py-4">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Category</h3>
         <p class="text-sm text-gray-500 mb-4">
-          Are you sure you want to delete "<span id="delete-category-name" class="font-medium text-gray-900"></span>"?
-          This action cannot be undone.
+          Are you sure you want to delete "<span
+            id="delete-category-name"
+            class="font-medium text-gray-900"></span>"? This action cannot be
+          undone.
         </p>
         <div id="delete-error" class="hidden mb-4 text-sm text-red-600"></div>
         <div class="flex justify-end gap-3">
@@ -245,20 +290,33 @@ try {
   const modal = document.getElementById('category-modal') as HTMLDivElement;
   const deleteModal = document.getElementById('delete-modal') as HTMLDivElement;
   const form = document.getElementById('category-form') as HTMLFormElement;
-  const modalTitle = document.getElementById('modal-title') as HTMLHeadingElement;
-  const categoryIdInput = document.getElementById('category-id') as HTMLInputElement;
-  const nameInput = document.getElementById('category-name') as HTMLInputElement;
-  const slugInput = document.getElementById('category-slug') as HTMLInputElement;
-  const descriptionInput = document.getElementById('category-description') as HTMLTextAreaElement;
+  const modalTitle = document.getElementById(
+    'modal-title',
+  ) as HTMLHeadingElement;
+  const categoryIdInput = document.getElementById(
+    'category-id',
+  ) as HTMLInputElement;
+  const nameInput = document.getElementById(
+    'category-name',
+  ) as HTMLInputElement;
+  const slugInput = document.getElementById(
+    'category-slug',
+  ) as HTMLInputElement;
+  const descriptionInput = document.getElementById(
+    'category-description',
+  ) as HTMLTextAreaElement;
   const formError = document.getElementById('form-error') as HTMLDivElement;
   const deleteError = document.getElementById('delete-error') as HTMLDivElement;
-  const deleteCategoryName = document.getElementById('delete-category-name') as HTMLSpanElement;
+  const deleteCategoryName = document.getElementById(
+    'delete-category-name',
+  ) as HTMLSpanElement;
 
   let deleteTargetId = '';
 
   // Auto-generate slug from name
   nameInput?.addEventListener('input', () => {
-    if (!categoryIdInput?.value) { // Only auto-generate for new categories
+    if (!categoryIdInput?.value) {
+      // Only auto-generate for new categories
       const slug = nameInput.value
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -280,7 +338,7 @@ try {
   });
 
   // Edit buttons
-  document.querySelectorAll('.edit-btn').forEach(btn => {
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const target = e.target as HTMLButtonElement;
       modalTitle.textContent = 'Edit Category';
@@ -312,10 +370,10 @@ try {
 
     try {
       const isEdit = !!categoryIdInput.value;
-      const url = isEdit 
+      const url = isEdit
         ? `/api/admin/categories/${categoryIdInput.value}`
         : '/api/admin/categories';
-      
+
       const response = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -337,7 +395,7 @@ try {
   });
 
   // Delete buttons
-  document.querySelectorAll('.delete-btn').forEach(btn => {
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const target = e.target as HTMLButtonElement;
       deleteTargetId = target.dataset.id || '';
@@ -348,30 +406,37 @@ try {
   });
 
   // Cancel delete
-  document.getElementById('cancel-delete-btn')?.addEventListener('click', () => {
-    deleteModal.classList.add('hidden');
-  });
+  document
+    .getElementById('cancel-delete-btn')
+    ?.addEventListener('click', () => {
+      deleteModal.classList.add('hidden');
+    });
 
   // Confirm delete
-  document.getElementById('confirm-delete-btn')?.addEventListener('click', async () => {
-    deleteError.classList.add('hidden');
+  document
+    .getElementById('confirm-delete-btn')
+    ?.addEventListener('click', async () => {
+      deleteError.classList.add('hidden');
 
-    try {
-      const response = await fetch(`/api/admin/categories/${deleteTargetId}`, {
-        method: 'DELETE',
-      });
+      try {
+        const response = await fetch(
+          `/api/admin/categories/${deleteTargetId}`,
+          {
+            method: 'DELETE',
+          },
+        );
 
-      const result = await response.json();
+        const result = await response.json();
 
-      if (result.success) {
-        window.location.reload();
-      } else {
-        deleteError.textContent = result.error || 'Failed to delete category';
+        if (result.success) {
+          window.location.reload();
+        } else {
+          deleteError.textContent = result.error || 'Failed to delete category';
+          deleteError.classList.remove('hidden');
+        }
+      } catch (err) {
+        deleteError.textContent = 'An error occurred. Please try again.';
         deleteError.classList.remove('hidden');
       }
-    } catch (err) {
-      deleteError.textContent = 'An error occurred. Please try again.';
-      deleteError.classList.remove('hidden');
-    }
-  });
+    });
 </script>
