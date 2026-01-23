@@ -40,8 +40,8 @@ jobs:
           # OAuth Credentials - Google (development)
           PRIVATE_OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.PRIVATE_OAUTH_GOOGLE_CLIENT_ID }}
           PRIVATE_OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.PRIVATE_OAUTH_GOOGLE_CLIENT_SECRET }}
-          PRIVATE_OAUTH_GOOGLE_REDIRECT_URI: ${{ secrets.PRIVATE_OAUTH_GOOGLE_REDIRECT_URI }}
-
+          #PRIVATE_OAUTH_GOOGLE_REDIRECT_URI: ${{ secrets.PRIVATE_OAUTH_GOOGLE_REDIRECT_URI }}
+          PRIVATE_OAUTH_GOOGLE_REDIRECT_URI: https://insightfulhealth.online/api/oauth2-redirect
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
