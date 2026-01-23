@@ -33,11 +33,8 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          #PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
-          #PUBLIC_POCKETBASE_URL: ${{ secrets.PUBLIC_POCKETBASE_URL }}
-          PUBLIC_POCKETBASE_URL: https://insightfulhealth.online/api
           PUBLIC_SITE_URL: https://insightfulhealth.online
-
+          PUBLIC_POCKETBASE_URL: https://insightfulhealth.online
           PUBLIC_SITE_DESCRIPTION: Public health data analytics and insights
 
           # OAuth Credentials - Google (development)
