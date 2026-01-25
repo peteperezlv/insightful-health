@@ -310,9 +310,43 @@ export async function createPost(
 
     console.log('Post created successfully:', record.id);
 
+    // Convert PocketBase record to clean Post object
+    const post: Post = {
+      id: record.id,
+      title: record.title,
+      slug: record.slug,
+      excerpt: record.excerpt || '',
+      content: record.content,
+      featuredImageUrl: record.featuredImageUrl || undefined,
+      status: record.status,
+      isFeatured: record.isFeatured || false,
+      categoryId: record.categoryId || undefined,
+      tags: record.tags || [],
+      seoTitle: record.seoTitle || undefined,
+      seoDescription: record.seoDescription || undefined,
+      seoKeywords: record.seoKeywords || [],
+      canonicalUrl: record.canonicalUrl || undefined,
+      ogImageUrl: record.ogImageUrl || undefined,
+      ogTitle: record.ogTitle || undefined,
+      ogDescription: record.ogDescription || undefined,
+      authorId: record.authorId,
+      authorName: record.authorName,
+      viewCount: record.viewCount || 0,
+      likeCount: record.likeCount || 0,
+      commentCount: record.commentCount || 0,
+      readingTimeMinutes: record.readingTimeMinutes,
+      wordCount: record.wordCount,
+      publishedAt: record.publishedAt || undefined,
+      scheduledFor: record.scheduledFor || undefined,
+      deletedAt: record.deletedAt || undefined,
+      isApproved: record.isApproved || false,
+      created: record.created,
+      updated: record.updated,
+    };
+
     return {
       success: true,
-      post: record as unknown as Post,
+      post,
     };
   } catch (error: any) {
     console.error('Create post error details:', {

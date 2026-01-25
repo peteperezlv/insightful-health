@@ -420,6 +420,11 @@ function initializeEditor() {
         const method = draftId ? 'PUT' : 'POST';
 
         console.log(`[CREATE POST] Sending ${method} request to ${url}`);
+        console.log(`[CREATE POST] Request URL (full):`, window.location.origin + url);
+        console.log(`[CREATE POST] Request data:`, {
+          ...data,
+          content: data.content?.substring(0, 100) + '...',
+        });
 
         const response = await fetch(url, {
           method,
@@ -431,11 +436,29 @@ function initializeEditor() {
         });
 
         console.log('[CREATE POST] Response status:', response.status);
+        console.log('[CREATE POST] Response ok:', response.ok);
 
-        const result = await response.json();
+        let result;
+        try {
+          result = await response.json();
+        } catch (e) {
+          console.error('[CREATE POST] Failed to parse response as JSON:', e);
+          const text = await response.text();
+          console.error('[CREATE POST] Response text:', text);
+          showAlert('Invalid response from server', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create Post';
+          return;
+        }
+
         console.log('[CREATE POST] Response data:', result);
+        console.log('[CREATE POST] Result.success:', result.success);
+        console.log('[CREATE POST] Full result object:', JSON.stringify(result, null, 2));
 
-        if (response.ok && result.success) {
+        // Handle successful response (status 2xx and either success=true or has post data)
+        const isSuccess = response.ok && (result.success === true || (response.status === 201 && result.post));
+
+        if (isSuccess) {
           hasUnsavedChanges = false;
           showAlert('Post created successfully!', 'success');
 

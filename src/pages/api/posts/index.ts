@@ -125,12 +125,22 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     console.log('POST /api/posts - Post created successfully:', result.post?.id);
 
+    const responseData = {
+      success: true,
+      message: 'Post created successfully',
+      post: result.post,
+    };
+
+    console.log('POST /api/posts - Sending response:', {
+      status: 201,
+      data: {
+        ...responseData,
+        post: responseData.post ? { id: responseData.post.id, title: responseData.post.title } : null,
+      },
+    });
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Post created successfully',
-        post: result.post,
-      }),
+      JSON.stringify(responseData),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
