@@ -416,7 +416,7 @@ function initializeEditor() {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creating...';
 
-        const url = draftId ? `/api/posts/${draftId}` : '/api/posts';
+        const url = draftId ? `/api/posts/${draftId}/` : '/api/posts/';
         const method = draftId ? 'PUT' : 'POST';
 
         console.log(`[CREATE POST] Sending ${method} request to ${url}`);
