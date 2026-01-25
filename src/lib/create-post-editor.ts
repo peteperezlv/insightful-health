@@ -445,10 +445,23 @@ function initializeEditor() {
               : '/dashboard/posts';
           }, 1500);
         } else {
+          console.error('[CREATE POST] Post creation failed:', {
+            status: response.status,
+            error: result.error,
+            details: result.details,
+            debugInfo: result.debugInfo,
+          });
+          
           if (result.error?.includes('slug')) {
             showFieldError(slugInput, slugError, result.error);
           }
-          showAlert(result.error || 'Failed to create post', 'error');
+          
+          // Show detailed error message
+          const errorMsg = result.details 
+            ? `${result.error}: ${result.details}` 
+            : result.error || 'Failed to create post';
+          
+          showAlert(errorMsg, 'error');
         }
       } catch (error) {
         console.error('[CREATE POST] Error:', error);

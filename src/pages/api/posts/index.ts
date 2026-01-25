@@ -135,8 +135,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
   } catch (error: any) {
     console.error('POST /api/posts - Unexpected error:', error);
+    console.error('POST /api/posts - Error details:', {
+      message: error?.message,
+      status: error?.status,
+      data: error?.data,
+      stack: error?.stack,
+    });
     return new Response(
-      JSON.stringify({ error: 'Failed to create post' }),
+      JSON.stringify({ 
+        error: 'Failed to create post',
+        details: error?.message || 'Unknown error',
+        debugInfo: process.env.NODE_ENV === 'development' ? error?.stack : undefined,
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

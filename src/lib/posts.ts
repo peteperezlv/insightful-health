@@ -244,46 +244,62 @@ export async function createPost(
     const readingTimeMinutes = calculateReadingTime(sanitizedContent);
 
     // Prepare post data
-    const postData = {
+    const postData: any = {
       title: data.title.trim(),
       slug,
       excerpt: data.excerpt?.trim() || '',
       content: sanitizedContent,
-      // Only include featuredImageUrl if it's a valid http(s) URL, not base64
-      featuredImageUrl: (data.featuredImageUrl && (data.featuredImageUrl.startsWith('http://') || data.featuredImageUrl.startsWith('https://'))) 
-        ? data.featuredImageUrl 
-        : '',
       status: data.status || 'draft',
       isFeatured: data.isFeatured || false,
-      // categoryId should be empty string or a valid ID
-      categoryId: data.categoryId || '',
-      // Tags field expects relation IDs, not names
-      // For now, leave empty array - proper tag selection needs to be implemented
-      tags: [],
-      seoTitle: data.seoTitle?.trim() || '',
-      seoDescription: data.seoDescription?.trim() || '',
-      seoKeywords: data.seoKeywords || [],
-      // Only include canonicalUrl if it's a valid URL
-      canonicalUrl: (data.canonicalUrl && (data.canonicalUrl.startsWith('http://') || data.canonicalUrl.startsWith('https://'))) 
-        ? data.canonicalUrl 
-        : '',
-      // Only include ogImageUrl if it's a valid URL, fallback to featuredImageUrl if valid
-      ogImageUrl: (data.featuredImageUrl && (data.featuredImageUrl.startsWith('http://') || data.featuredImageUrl.startsWith('https://'))) 
-        ? data.featuredImageUrl 
-        : '',
-      ogTitle: data.seoTitle || data.title,
-      ogDescription: data.seoDescription || data.excerpt || '',
       authorId: author.id,
-      authorName: author.fullName || author.username || author.email,
+      authorName: author.fullName || author.username || author.email || 'Unknown Author',
       viewCount: 0,
       likeCount: 0,
       commentCount: 0,
       wordCount,
       readingTimeMinutes,
-      publishedAt: data.status === 'published' ? new Date().toISOString() : '',
-      scheduledFor: data.scheduledFor || '',
       isApproved: author.role === 'admin', // Auto-approve for admins
     };
+
+    // Add optional fields only if they have valid values
+    if (data.featuredImageUrl && (data.featuredImageUrl.startsWith('http://') || data.featuredImageUrl.startsWith('https://'))) {
+      postData.featuredImageUrl = data.featuredImageUrl;
+      postData.ogImageUrl = data.featuredImageUrl;
+    }
+
+    if (data.categoryId) {
+      postData.categoryId = data.categoryId;
+    }
+
+    if (data.seoTitle?.trim()) {
+      postData.seoTitle = data.seoTitle.trim();
+      postData.ogTitle = data.seoTitle.trim();
+    } else {
+      postData.ogTitle = data.title;
+    }
+
+    if (data.seoDescription?.trim()) {
+      postData.seoDescription = data.seoDescription.trim();
+      postData.ogDescription = data.seoDescription.trim();
+    } else if (data.excerpt?.trim()) {
+      postData.ogDescription = data.excerpt.trim();
+    }
+
+    if (data.seoKeywords && data.seoKeywords.length > 0) {
+      postData.seoKeywords = data.seoKeywords;
+    }
+
+    if (data.canonicalUrl && (data.canonicalUrl.startsWith('http://') || data.canonicalUrl.startsWith('https://'))) {
+      postData.canonicalUrl = data.canonicalUrl;
+    }
+
+    if (data.status === 'published') {
+      postData.publishedAt = new Date().toISOString();
+    }
+
+    if (data.scheduledFor) {
+      postData.scheduledFor = data.scheduledFor;
+    }
 
     console.log('Creating post with data:', {
       ...postData,
