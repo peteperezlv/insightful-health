@@ -625,6 +625,10 @@ function initializeEditor() {
           case 'hr':
             editor.chain().focus().setHorizontalRule().run();
             break;
+          case 'table':
+            // Insert a 3x3 table with header row by default
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+            break;
           case 'alignLeft':
             editor.chain().focus().setTextAlign('left').run();
             break;
