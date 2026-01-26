@@ -629,6 +629,11 @@ function setupFormSubmission() {
         submitBtn.textContent = 'Publishing...';
       }
 
+      console.log('Sending update request with data:', {
+        ...data,
+        content: data.content ? `${data.content.substring(0, 100)}...` : undefined,
+      });
+
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'PUT',
         headers: {
@@ -639,6 +644,7 @@ function setupFormSubmission() {
       });
 
       const result = await response.json();
+      console.log('Update response:', { status: response.status, result });
 
       if (response.ok && result.success) {
         hasUnsavedChanges = false;
@@ -648,6 +654,7 @@ function setupFormSubmission() {
         if (submitBtn) submitBtn.textContent = 'Update Post';
         if (unpublishBtn) unpublishBtn.classList.remove('hidden');
       } else {
+        console.error('Update failed:', result);
         if (result.error?.includes('slug')) {
           showFieldError(slugInput, slugError, result.error);
         }

@@ -159,6 +159,46 @@ export function sanitizeHtml(html: string): string {
 }
 
 /**
+ * Find or create tags and return their IDs
+ * Tags are stored in a separate 'tags' collection
+ */
+async function findOrCreateTags(tagNames: string[]): Promise<string[]> {
+  if (!tagNames || tagNames.length === 0) {
+    return [];
+  }
+
+  const pb = getPocketBase();
+  const tagIds: string[] = [];
+
+  for (const tagName of tagNames) {
+    const trimmedName = tagName.trim();
+    if (!trimmedName) continue;
+
+    try {
+      // Try to find existing tag
+      const existing = await pb.collection('tags').getList(1, 1, {
+        filter: `name = "${trimmedName}"`,
+      });
+
+      if (existing.items.length > 0) {
+        tagIds.push(existing.items[0].id);
+      } else {
+        // Create new tag
+        const newTag = await pb.collection('tags').create({
+          name: trimmedName,
+          slug: generateSlug(trimmedName),
+        });
+        tagIds.push(newTag.id);
+      }
+    } catch (error) {
+      console.error(`Error processing tag "${trimmedName}":`, error);
+    }
+  }
+
+  return tagIds;
+}
+
+/**
  * Validate post data
  */
 export function validatePostData(data: CreatePostData): { valid: boolean; errors: string[] } {
@@ -301,6 +341,14 @@ export async function createPost(
       postData.scheduledFor = data.scheduledFor;
     }
 
+    // Handle tags - convert tag names to tag IDs
+    if (data.tags && data.tags.length > 0) {
+      const tagIds = await findOrCreateTags(data.tags);
+      if (tagIds.length > 0) {
+        postData.tags = tagIds;
+      }
+    }
+
     console.log('Creating post with data:', {
       ...postData,
       content: postData.content.substring(0, 100) + '...', // Truncate for logging
@@ -430,12 +478,27 @@ export async function updatePost(
     }
     if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
     if (data.categoryId !== undefined) updateData.categoryId = data.categoryId || null;
-    if (data.tags !== undefined) updateData.tags = data.tags;
+    
+    // Handle tags - convert tag names to tag IDs
+    if (data.tags !== undefined) {
+      if (data.tags.length > 0) {
+        const tagIds = await findOrCreateTags(data.tags);
+        updateData.tags = tagIds;
+      } else {
+        updateData.tags = [];
+      }
+    }
+    
     if (data.seoTitle !== undefined) updateData.seoTitle = data.seoTitle.trim();
     if (data.seoDescription !== undefined) updateData.seoDescription = data.seoDescription.trim();
     if (data.seoKeywords !== undefined) updateData.seoKeywords = data.seoKeywords;
     if (data.canonicalUrl !== undefined) updateData.canonicalUrl = data.canonicalUrl;
     if (data.scheduledFor !== undefined) updateData.scheduledFor = data.scheduledFor;
+
+    console.log('Updating post with data:', {
+      ...updateData,
+      content: updateData.content ? `${updateData.content.substring(0, 100)}...` : undefined,
+    });
 
     const record = await pb.collection('posts').update(data.id, updateData);
 
@@ -445,9 +508,10 @@ export async function updatePost(
     };
   } catch (error: any) {
     console.error('Update post error:', error);
+    console.error('Error details:', error.data || error.response);
     return {
       success: false,
-      error: error.message || 'Failed to update post',
+      error: error.data?.message || error.message || 'Failed to update post',
     };
   }
 }

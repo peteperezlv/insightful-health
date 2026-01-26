@@ -90,12 +90,17 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
 
     // Parse request body
     const data = await request.json();
+    console.log('PUT /api/posts/[id] - Request data:', {
+      ...data,
+      content: data.content ? `${data.content.substring(0, 100)}...` : undefined,
+    });
     const updateData: UpdatePostData = { ...data, id: postId };
 
     // Update the post
     const result = await updatePost(updateData, user);
 
     if (!result.success) {
+      console.error('PUT /api/posts/[id] - Update failed:', result.error);
       return new Response(
         JSON.stringify({ error: result.error }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
