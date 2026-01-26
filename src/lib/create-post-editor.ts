@@ -375,6 +375,16 @@ function initializeEditor() {
         headingSelect.value = 'paragraph';
       }
     }
+
+    // Show/hide table operations based on cursor position
+    const tableOps = document.getElementById('table-operations');
+    if (tableOps) {
+      if (editor.isActive('table')) {
+        tableOps.style.display = 'flex';
+      } else {
+        tableOps.style.display = 'none';
+      }
+    }
   }
 
   function updateStats() {
@@ -628,6 +638,27 @@ function initializeEditor() {
           case 'table':
             // Insert a 3x3 table with header row by default
             editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+            break;
+          case 'addRowBefore':
+            editor.chain().focus().addRowBefore().run();
+            break;
+          case 'addRowAfter':
+            editor.chain().focus().addRowAfter().run();
+            break;
+          case 'deleteRow':
+            editor.chain().focus().deleteRow().run();
+            break;
+          case 'addColumnBefore':
+            editor.chain().focus().addColumnBefore().run();
+            break;
+          case 'addColumnAfter':
+            editor.chain().focus().addColumnAfter().run();
+            break;
+          case 'deleteColumn':
+            editor.chain().focus().deleteColumn().run();
+            break;
+          case 'deleteTable':
+            editor.chain().focus().deleteTable().run();
             break;
           case 'alignLeft':
             editor.chain().focus().setTextAlign('left').run();

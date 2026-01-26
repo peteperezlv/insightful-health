@@ -11,6 +11,10 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import { common, createLowlight } from 'lowlight';
 
@@ -81,6 +85,23 @@ function initializeEditor() {
         lowlight,
         HTMLAttributes: {
           class: 'bg-gray-900 text-gray-100 rounded-lg p-4 my-4 overflow-x-auto',
+        },
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'border-collapse table-auto w-full my-4',
+        },
+      }),
+      TableRow,
+      TableCell.configure({
+        HTMLAttributes: {
+          class: 'border border-gray-300 px-4 py-2',
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: 'border border-gray-300 px-4 py-2 bg-gray-100 font-semibold',
         },
       }),
       HorizontalRule.configure({
@@ -178,6 +199,31 @@ function initializeEditor() {
           case 'hr':
             editor.chain().focus().setHorizontalRule().run();
             break;
+          case 'table':
+            // Insert a 3x3 table with header row by default
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+            break;
+          case 'addRowBefore':
+            editor.chain().focus().addRowBefore().run();
+            break;
+          case 'addRowAfter':
+            editor.chain().focus().addRowAfter().run();
+            break;
+          case 'deleteRow':
+            editor.chain().focus().deleteRow().run();
+            break;
+          case 'addColumnBefore':
+            editor.chain().focus().addColumnBefore().run();
+            break;
+          case 'addColumnAfter':
+            editor.chain().focus().addColumnAfter().run();
+            break;
+          case 'deleteColumn':
+            editor.chain().focus().deleteColumn().run();
+            break;
+          case 'deleteTable':
+            editor.chain().focus().deleteTable().run();
+            break;
           case 'clearFormat':
             editor.chain().focus().clearNodes().unsetAllMarks().run();
             break;
@@ -265,6 +311,16 @@ function initializeEditor() {
       else if (editor.isActive('heading', { level: 3 })) headingSelect.value = '3';
       else if (editor.isActive('heading', { level: 4 })) headingSelect.value = '4';
       else headingSelect.value = 'paragraph';
+    }
+
+    // Show/hide table operations based on cursor position
+    const tableOps = document.getElementById('table-operations');
+    if (tableOps) {
+      if (editor.isActive('table')) {
+        tableOps.style.display = 'flex';
+      } else {
+        tableOps.style.display = 'none';
+      }
     }
   }
 
