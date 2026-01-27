@@ -787,6 +787,32 @@ function setupFormSubmission() {
     }
   });
 
+  // Preview button - show modal with formatted content
+  const previewBtn = document.getElementById('preview-btn') as HTMLButtonElement;
+  const previewModal = document.getElementById('preview-modal') as HTMLElement;
+  const previewContent = document.getElementById('preview-content') as HTMLElement;
+  const closePreview = document.getElementById('close-preview') as HTMLButtonElement;
+  const previewBackdrop = document.getElementById('preview-backdrop') as HTMLElement;
+
+  previewBtn?.addEventListener('click', () => {
+    if (editor && previewContent) {
+      // Get the HTML content from the editor
+      const html = editor.getHTML();
+      previewContent.innerHTML = html;
+      
+      // Show the modal
+      previewModal?.classList.remove('hidden');
+    }
+  });
+
+  closePreview?.addEventListener('click', () => {
+    previewModal?.classList.add('hidden');
+  });
+
+  previewBackdrop?.addEventListener('click', () => {
+    previewModal?.classList.add('hidden');
+  });
+
   // Warn about unsaved changes
   window.addEventListener('beforeunload', (e) => {
     if (hasUnsavedChanges) {

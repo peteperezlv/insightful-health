@@ -1356,8 +1356,9 @@ const postKeywords = Array.isArray(post.seoKeywords)
         id="preview-backdrop"
       >
       </div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
       <div
-        class="inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6"
+        class="relative inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6"
       >
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">Post Preview</h3>
@@ -1380,7 +1381,7 @@ const postKeywords = Array.isArray(post.seoKeywords)
             </svg>
           </button>
         </div>
-        <div class="prose max-w-none" id="preview-content">
+        <div class="prose prose-lg max-w-none" id="preview-content">
           <!-- Preview content will be inserted here -->
         </div>
       </div>
