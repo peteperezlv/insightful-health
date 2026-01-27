@@ -165,6 +165,28 @@
 	margin: 0;
 }
 
+/* Nested lists in editor - ensure proper indentation */
+.prose ul ul,
+.prose ul ol,
+.prose ol ul,
+.prose ol ol {
+	margin: 0.5rem 0;
+	padding-left: 2rem;
+}
+
+.prose ul[data-type="bulletList"],
+.prose ol[data-type="orderedList"] {
+	list-style-position: outside;
+	margin-left: 0;
+	padding-left: 1.5rem;
+}
+
+.prose li[data-type="listItem"] {
+	position: relative;
+	margin-left: 0;
+	padding-left: 0;
+}
+
 /* Smooth transitions */
 * {
 	@apply transition-colors duration-150;

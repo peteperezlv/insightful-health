@@ -12,7 +12,182 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { FontFamily } from '@tiptap/extension-font-family';
+import { Extension } from '@tiptap/core';
 import { common, createLowlight } from 'lowlight';
+
+// Custom FontSize extension
+const FontSize = Extension.create({
+  name: 'fontSize',
+
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize || null,
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {};
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+
+  addCommands() {
+    return {
+      setFontSize: (fontSize: string) => ({ chain }) => {
+        return chain().setMark('textStyle', { fontSize }).run();
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run();
+      },
+    };
+  },
+});
+
+// Custom Indent extension
+const Indent = Extension.create({
+  name: 'indent',
+
+  addOptions() {
+    return {
+      types: ['paragraph', 'heading'],
+      minLevel: 0,
+      maxLevel: 8,
+    };
+  },
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          indent: {
+            default: 0,
+            parseHTML: element => {
+              const indent = element.style.paddingLeft;
+              return indent ? parseInt(indent) / 30 : 0;
+            },
+            renderHTML: attributes => {
+              if (!attributes.indent) {
+                return {};
+              }
+              return {
+                style: `padding-left: ${attributes.indent * 30}px`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+
+  addCommands() {
+    return {
+      indent: () => ({ tr, state, dispatch, editor }) => {
+        const { selection } = state;
+        const { $from, $to } = selection;
+
+        // Check if any node in the selection is a list or list item
+        let hasListNode = false;
+        state.doc.nodesBetween($from.pos, $to.pos, (node) => {
+          if (node.type.name === 'bulletList' || node.type.name === 'orderedList' || node.type.name === 'listItem') {
+            hasListNode = true;
+            return false; // Stop checking
+          }
+        });
+
+        // Don't apply padding-based indent if we're in a list
+        if (hasListNode) {
+          return false;
+        }
+
+        state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+          if (this.options.types.includes(node.type.name)) {
+            const currentIndent = node.attrs.indent || 0;
+            if (currentIndent < this.options.maxLevel) {
+              tr.setNodeMarkup(pos, undefined, {
+                ...node.attrs,
+                indent: currentIndent + 1,
+              });
+            }
+          }
+        });
+
+        if (dispatch) dispatch(tr);
+        return true;
+      },
+      outdent: () => ({ tr, state, dispatch, editor }) => {
+        const { selection } = state;
+        const { $from, $to } = selection;
+
+        // Check if any node in the selection is a list or list item
+        let hasListNode = false;
+        state.doc.nodesBetween($from.pos, $to.pos, (node) => {
+          if (node.type.name === 'bulletList' || node.type.name === 'orderedList' || node.type.name === 'listItem') {
+            hasListNode = true;
+            return false; // Stop checking
+          }
+        });
+
+        // Don't apply padding-based outdent if we're in a list
+        if (hasListNode) {
+          return false;
+        }
+
+        state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+          if (this.options.types.includes(node.type.name)) {
+            const currentIndent = node.attrs.indent || 0;
+            if (currentIndent > this.options.minLevel) {
+              tr.setNodeMarkup(pos, undefined, {
+                ...node.attrs,
+                indent: currentIndent - 1,
+              });
+            }
+          }
+        });
+
+        if (dispatch) dispatch(tr);
+        return true;
+      },
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Tab: () => {
+        // Use native list indenting if in a list
+        if (this.editor.isActive('bulletList') || this.editor.isActive('orderedList')) {
+          return this.editor.commands.sinkListItem('listItem');
+        }
+        return this.editor.commands.indent();
+      },
+      'Shift-Tab': () => {
+        // Use native list outdenting if in a list
+        if (this.editor.isActive('bulletList') || this.editor.isActive('orderedList')) {
+          return this.editor.commands.liftListItem('listItem');
+        }
+        return this.editor.commands.outdent();
+      },
+    };
+  },
+});
 
 console.log('[CREATE POST] Script loaded');
 console.log('[CREATE POST] TipTap modules imported');
@@ -312,6 +487,10 @@ function initializeEditor() {
             class: 'my-8 border-t-2 border-gray-300',
           },
         }),
+        TextStyle,
+        FontFamily,
+        FontSize,
+        Indent,
       ],
       content: '',
       editorProps: {
@@ -669,6 +848,26 @@ function initializeEditor() {
           case 'alignRight':
             editor.chain().focus().setTextAlign('right').run();
             break;
+          case 'indent':
+            // Try list indent first
+            if (!editor.chain().focus().sinkListItem('listItem').run()) {
+              // If not in a list, use custom paragraph indent
+              // Don't apply padding if we're in a list (just can't sink)
+              if (!editor.isActive('bulletList') && !editor.isActive('orderedList')) {
+                (editor.commands as any).indent();
+              }
+            }
+            break;
+          case 'outdent':
+            // Try list outdent first
+            if (!editor.chain().focus().liftListItem('listItem').run()) {
+              // If not in a list, use custom paragraph outdent
+              // Don't apply padding if we're in a list (just can't lift)
+              if (!editor.isActive('bulletList') && !editor.isActive('orderedList')) {
+                (editor.commands as any).outdent();
+              }
+            }
+            break;
           case 'undo':
             editor.chain().focus().undo().run();
             break;
@@ -708,6 +907,32 @@ function initializeEditor() {
       } else {
         const level = parseInt(value) as 1 | 2 | 3 | 4 | 5 | 6;
         editor.chain().focus().setHeading({ level }).run();
+      }
+    });
+
+    // Font family select
+    const fontFamilySelect = document.getElementById('font-family-select') as HTMLSelectElement;
+    fontFamilySelect?.addEventListener('change', (e) => {
+      if (!editor) return;
+      const value = (e.target as HTMLSelectElement).value;
+      
+      if (value) {
+        editor.chain().focus().setFontFamily(value).run();
+      } else {
+        editor.chain().focus().unsetFontFamily().run();
+      }
+    });
+
+    // Font size select
+    const fontSizeSelect = document.getElementById('font-size-select') as HTMLSelectElement;
+    fontSizeSelect?.addEventListener('change', (e) => {
+      if (!editor) return;
+      const value = (e.target as HTMLSelectElement).value;
+      
+      if (value) {
+        (editor.chain().focus() as any).setFontSize(value).run();
+      } else {
+        (editor.chain().focus() as any).unsetFontSize().run();
       }
     });
   }

@@ -318,6 +318,74 @@ try {
 
               <div class="editor-toolbar-divider"></div>
 
+              <!-- Font Family -->
+              <div class="editor-toolbar-group">
+                <select
+                  id="font-family-select"
+                  class="editor-toolbar-select"
+                  title="Font Family"
+                >
+                  <option value="">Default Font</option>
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                  <option value="Verdana, sans-serif">Verdana</option>
+                  <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                  <option value="Impact, sans-serif">Impact</option>
+                </select>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Font Size -->
+              <div class="editor-toolbar-group">
+                <select
+                  id="font-size-select"
+                  class="editor-toolbar-select"
+                  title="Font Size"
+                >
+                  <option value="">Default Size</option>
+                  <option value="12px">12px</option>
+                  <option value="14px">14px</option>
+                  <option value="16px">16px</option>
+                  <option value="18px">18px</option>
+                  <option value="20px">20px</option>
+                  <option value="24px">24px</option>
+                  <option value="28px">28px</option>
+                  <option value="32px">32px</option>
+                  <option value="36px">36px</option>
+                </select>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
+              <!-- Indent/Outdent -->
+              <div class="editor-toolbar-group">
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="outdent"
+                  title="Decrease Indent"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="editor-toolbar-btn"
+                  data-action="indent"
+                  title="Increase Indent"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="editor-toolbar-divider"></div>
+
               <!-- Text alignment -->
               <div class="editor-toolbar-group">
                 <button
