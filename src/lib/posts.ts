@@ -175,7 +175,7 @@ async function findOrCreateTags(tagNames: string[]): Promise<string[]> {
     if (!trimmedName) continue;
 
     try {
-      // Try to find existing tag
+      // Try to find existing tag by name
       const existing = await pb.collection('tags').getList(1, 1, {
         filter: `name = "${trimmedName}"`,
       });
@@ -184,11 +184,25 @@ async function findOrCreateTags(tagNames: string[]): Promise<string[]> {
         tagIds.push(existing.items[0].id);
       } else {
         // Create new tag
-        const newTag = await pb.collection('tags').create({
-          name: trimmedName,
-          slug: generateSlug(trimmedName),
-        });
-        tagIds.push(newTag.id);
+        const slug = generateSlug(trimmedName);
+        try {
+          const newTag = await pb.collection('tags').create({
+            name: trimmedName,
+            slug: slug,
+          });
+          tagIds.push(newTag.id);
+        } catch (createError: any) {
+          // If creation fails due to duplicate slug, try to find by slug
+          console.log(`Tag creation failed for "${trimmedName}", trying to find by slug...`);
+          const existingBySlug = await pb.collection('tags').getList(1, 1, {
+            filter: `slug = "${slug}"`,
+          });
+          if (existingBySlug.items.length > 0) {
+            tagIds.push(existingBySlug.items[0].id);
+          } else {
+            console.error(`Error processing tag "${trimmedName}":`, createError);
+          }
+        }
       }
     } catch (error) {
       console.error(`Error processing tag "${trimmedName}":`, error);
@@ -558,7 +572,9 @@ export async function getPostById(
 ): Promise<{ success: boolean; post?: Post; error?: string }> {
   try {
     const pb = getPocketBase();
-    const record = await pb.collection('posts').getOne(postId);
+    const record = await pb.collection('posts').getOne(postId, {
+      expand: 'tags'
+    });
 
     return {
       success: true,
@@ -583,6 +599,7 @@ export async function getPostBySlug(
     const pb = getPocketBase();
     const records = await pb.collection('posts').getList(1, 1, {
       filter: `slug = "${slug}" && status = "published"`,
+      expand: 'tags,authorId,categoryId',
     });
 
     if (records.totalItems === 0) {

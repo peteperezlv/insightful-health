@@ -46,8 +46,15 @@ const csrfToken = ensureCSRFToken(Astro.cookies);
 const categories = await getCategories();
 const tags = await getTags();
 
-// Format tags for display
-const postTags = Array.isArray(post.tags) ? post.tags.join(', ') : '';
+// Format tags for display - extract names from expanded tags
+let postTags = '';
+if (post.expand?.tags && Array.isArray(post.expand.tags)) {
+  postTags = post.expand.tags.map((tag: any) => tag.name).join(', ');
+} else if (Array.isArray(post.tags) && post.tags.length > 0) {
+  // Fallback if tags weren't expanded (shouldn't happen but just in case)
+  postTags = post.tags.join(', ');
+}
+
 const postKeywords = Array.isArray(post.seoKeywords)
   ? post.seoKeywords.join(', ')
   : '';
