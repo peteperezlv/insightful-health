@@ -296,7 +296,11 @@ function initializeEditor() {
         width: 640,
         height: 480,
         modestBranding: true,
-        nocookie: true, // Use privacy-enhanced mode (youtube-nocookie.com)
+        nocookie: false, // Switch back to regular youtube.com for better compatibility
+        controls: true,
+        enableIFrameApi: false,
+        // Add inline player params to help with embedding
+        origin: typeof window !== 'undefined' ? window.location.origin : '',
       }),
     ],
     content: initialContent,
@@ -697,17 +701,28 @@ function initializeEditor() {
     console.log('[YouTube] Inserting video with URL:', url);
     
     if (url && editor) {
-      // Try the correct command for YouTube extension
+      // Validate it's a YouTube URL
+      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+      const match = url.match(youtubeRegex);
+      
+      if (!match) {
+        alert('Please enter a valid YouTube URL.\n\nExamples:\n• https://www.youtube.com/watch?v=dQw4w9WgXcQ\n• https://youtu.be/dQw4w9WgXcQ');
+        return;
+      }
+      
       try {
         editor.commands.setYoutubeVideo({ src: url });
         console.log('[YouTube] Video inserted successfully');
+        
+        if (youtubeModal) youtubeModal.classList.add('hidden');
+        if (youtubeUrlInput) youtubeUrlInput.value = '';
       } catch (error) {
         console.error('[YouTube] Error inserting video:', error);
+        alert('Failed to insert video. Please try again.');
       }
+    } else if (!url) {
+      alert('Please enter a YouTube URL');
     }
-    
-    if (youtubeModal) youtubeModal.classList.add('hidden');
-    if (youtubeUrlInput) youtubeUrlInput.value = '';
   });
 
   cancelYoutubeBtn?.addEventListener('click', () => {
