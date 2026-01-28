@@ -147,7 +147,7 @@
 /* Post content lists */
 .prose ul {
 	list-style-type: disc;
-	padding-left: 1.5rem;
+	padding-left: 1.9rem;
 	margin: 0.75rem 0;
 }
 
@@ -171,7 +171,7 @@
 .prose ol ul,
 .prose ol ol {
 	margin: 0.5rem 0;
-	padding-left: 2rem;
+	padding-left: 1.2rem;
 }
 
 .prose ul[data-type="bulletList"],
