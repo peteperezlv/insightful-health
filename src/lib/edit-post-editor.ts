@@ -696,16 +696,22 @@ function initializeEditor() {
 
   confirmYoutubeBtn?.addEventListener('click', () => {
     const youtubeUrlInput = document.getElementById('youtube-url') as HTMLInputElement;
-    const url = youtubeUrlInput?.value;
+    let url = youtubeUrlInput?.value?.trim(); // Trim whitespace
     
     console.log('[YouTube] Inserting video with URL:', url);
     
-    if (url && editor) {
-      // Validate it's a YouTube URL
-      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    if (!url) {
+      alert('Please enter a YouTube URL');
+      return;
+    }
+    
+    if (editor) {
+      // More lenient YouTube URL validation
+      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})|youtube\.com\/watch\?v=([^"&?\/\s]{11})/i;
       const match = url.match(youtubeRegex);
       
       if (!match) {
+        console.warn('[YouTube] URL validation failed for:', url);
         alert('Please enter a valid YouTube URL.\n\nExamples:\n• https://www.youtube.com/watch?v=dQw4w9WgXcQ\n• https://youtu.be/dQw4w9WgXcQ');
         return;
       }
@@ -720,8 +726,6 @@ function initializeEditor() {
         console.error('[YouTube] Error inserting video:', error);
         alert('Failed to insert video. Please try again.');
       }
-    } else if (!url) {
-      alert('Please enter a YouTube URL');
     }
   });
 
