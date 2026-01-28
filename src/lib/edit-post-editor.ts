@@ -706,13 +706,13 @@ function initializeEditor() {
     }
     
     if (editor) {
-      // More lenient YouTube URL validation
-      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})|youtube\.com\/watch\?v=([^"&?\/\s]{11})/i;
+      // YouTube URL validation - supports regular videos, shorts, and share links
+      const youtubeRegex = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
       const match = url.match(youtubeRegex);
       
       if (!match) {
         console.warn('[YouTube] URL validation failed for:', url);
-        alert('Please enter a valid YouTube URL.\n\nExamples:\n• https://www.youtube.com/watch?v=dQw4w9WgXcQ\n• https://youtu.be/dQw4w9WgXcQ');
+        alert('Please enter a valid YouTube URL.\n\nExamples:\n• https://www.youtube.com/watch?v=dQw4w9WgXcQ\n• https://youtu.be/dQw4w9WgXcQ\n• https://youtube.com/shorts/QKDIVUA86UU');
         return;
       }
       
