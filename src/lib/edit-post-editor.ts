@@ -18,6 +18,7 @@ import { TableHeader } from '@tiptap/extension-table-header';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { FontFamily } from '@tiptap/extension-font-family';
+import Youtube from '@tiptap/extension-youtube';
 import { Extension } from '@tiptap/core';
 import { common, createLowlight } from 'lowlight';
 
@@ -288,6 +289,15 @@ function initializeEditor() {
       FontFamily,
       FontSize,
       Indent,
+      Youtube.configure({
+        HTMLAttributes: {
+          class: 'w-full aspect-video rounded-lg my-4',
+        },
+        width: 640,
+        height: 480,
+        modestBranding: true,
+        nocookie: true, // Use privacy-enhanced mode (youtube-nocookie.com)
+      }),
     ],
     content: initialContent,
     editable: true,
@@ -447,6 +457,9 @@ function initializeEditor() {
           case 'image':
             openImageModal();
             break;
+          case 'youtube':
+            openYoutubeModal();
+            break;
           case 'fullscreen':
             toggleFullscreen();
             break;
@@ -593,6 +606,15 @@ function initializeEditor() {
     imageUrlInput?.focus();
   }
 
+  function openYoutubeModal() {
+    const modal = document.getElementById('youtube-modal');
+    if (!modal) return;
+    
+    modal.classList.remove('hidden');
+    const youtubeUrlInput = document.getElementById('youtube-url') as HTMLInputElement;
+    youtubeUrlInput?.focus();
+  }
+
   // Link modal handlers
   const confirmLinkBtn = document.getElementById('confirm-link-btn');
   const removeLinkBtn = document.getElementById('remove-link-btn');
@@ -660,6 +682,42 @@ function initializeEditor() {
 
   imageBackdrop?.addEventListener('click', () => {
     if (imageModal) imageModal.classList.add('hidden');
+  });
+
+  // YouTube modal handlers
+  const confirmYoutubeBtn = document.getElementById('confirm-youtube-btn');
+  const cancelYoutubeBtn = document.getElementById('cancel-youtube-btn');
+  const youtubeBackdrop = document.getElementById('youtube-backdrop');
+  const youtubeModal = document.getElementById('youtube-modal');
+
+  confirmYoutubeBtn?.addEventListener('click', () => {
+    const youtubeUrlInput = document.getElementById('youtube-url') as HTMLInputElement;
+    const url = youtubeUrlInput?.value;
+    
+    console.log('[YouTube] Inserting video with URL:', url);
+    
+    if (url && editor) {
+      // Try the correct command for YouTube extension
+      try {
+        editor.commands.setYoutubeVideo({ src: url });
+        console.log('[YouTube] Video inserted successfully');
+      } catch (error) {
+        console.error('[YouTube] Error inserting video:', error);
+      }
+    }
+    
+    if (youtubeModal) youtubeModal.classList.add('hidden');
+    if (youtubeUrlInput) youtubeUrlInput.value = '';
+  });
+
+  cancelYoutubeBtn?.addEventListener('click', () => {
+    if (youtubeModal) youtubeModal.classList.add('hidden');
+    const youtubeUrlInput = document.getElementById('youtube-url') as HTMLInputElement;
+    if (youtubeUrlInput) youtubeUrlInput.value = '';
+  });
+
+  youtubeBackdrop?.addEventListener('click', () => {
+    if (youtubeModal) youtubeModal.classList.add('hidden');
   });
 
   // Form submission handling

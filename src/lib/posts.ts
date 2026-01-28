@@ -136,6 +136,8 @@ export function sanitizeHtml(html: string): string {
       'div', 'span',
       // Horizontal rule
       'hr',
+      // Video embeds (YouTube)
+      'iframe',
     ],
     ALLOWED_ATTR: [
       // Common attributes
@@ -148,14 +150,34 @@ export function sanitizeHtml(html: string): string {
       'colspan', 'rowspan',
       // Text alignment
       'align',
+      // iframe/video attributes
+      'frameborder', 'allowfullscreen', 'allow',
     ],
     // Explicitly forbid dangerous attributes
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'oninput'],
-    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'style'],
-    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['script', 'object', 'embed', 'applet', 'meta', 'link', 'style'],
+    ALLOW_DATA_ATTR: true, // Allow data attributes for YouTube extension
+    // Only allow iframes from trusted video sources
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   };
   
-  return DOMPurify.sanitize(html, config);
+  // Add hook to validate iframe sources (only allow YouTube)
+  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+    if (data.tagName === 'iframe') {
+      const src = node.getAttribute('src');
+      // Only allow YouTube and YouTube-nocookie domains
+      if (src && !src.match(/^https:\/\/(www\.)?youtube(-nocookie)?\.com\/embed\//)) {
+        node.parentNode?.removeChild(node);
+      }
+    }
+  });
+  
+  const sanitized = DOMPurify.sanitize(html, config);
+  
+  // Remove the hook after use
+  DOMPurify.removeAllHooks();
+  
+  return sanitized;
 }
 
 /**

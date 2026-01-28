@@ -165,6 +165,26 @@
 	margin: 0;
 }
 
+/* YouTube video embeds in post content */
+.prose div[data-youtube-video] {
+	position: relative;
+	width: 100%;
+	padding-bottom: 56.25%; /* 16:9 aspect ratio */
+	margin: 1.5rem 0;
+	border-radius: 0.5rem;
+	overflow: hidden;
+}
+
+.prose div[data-youtube-video] iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border: none;
+	border-radius: 0.5rem;
+}
+
 /* Nested lists in editor - ensure proper indentation */
 .prose ul ul,
 .prose ul ol,
