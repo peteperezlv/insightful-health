@@ -126,15 +126,17 @@ const structuredData = {
     <!-- Post Header -->
     <header class="mb-12 border-b border-gray-200 pb-8">
       {
-        post.expand?.tags && Array.isArray(post.expand.tags) && post.expand.tags.length > 0 && (
-          <div class="mb-4 flex gap-2 flex-wrap">
-            {post.expand.tags.map((tag: any) => (
-              <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
-                {tag.name}
-              </span>
-            ))}
-          </div>
-        )
+        post.expand?.tags &&
+          Array.isArray(post.expand.tags) &&
+          post.expand.tags.length > 0 && (
+            <div class="mb-4 flex gap-2 flex-wrap">
+              {post.expand.tags.map((tag: any) => (
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )
       }
 
       <h1 class="mb-4">{post.title}</h1>
@@ -211,7 +213,9 @@ const structuredData = {
           <h4 class="text-sm font-semibold text-gray-600 mb-2">Tags</h4>
           <div class="flex flex-wrap gap-1">
             {
-              post.expand?.tags && Array.isArray(post.expand.tags) && post.expand.tags.length > 0 ? (
+              post.expand?.tags &&
+              Array.isArray(post.expand.tags) &&
+              post.expand.tags.length > 0 ? (
                 post.expand.tags.map((tag: any) => (
                   <a
                     href={`/tag/${tag.slug}`}

@@ -18,8 +18,10 @@ if (!user) {
   <div class="min-h-screen bg-gray-50 py-12">
     <div class="max-w-4xl mx-auto px-4">
       <div class="bg-white rounded-lg shadow-md p-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-6">Post Creation Diagnostic Tool</h1>
-        
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">
+          Post Creation Diagnostic Tool
+        </h1>
+
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h2 class="font-semibold text-blue-900 mb-2">Current User</h2>
           <p class="text-sm text-blue-800">Email: {user.email}</p>
@@ -42,7 +44,7 @@ if (!user) {
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Content
@@ -51,9 +53,10 @@ if (!user) {
                 id="test-content"
                 rows="4"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >This is a test post created from the diagnostic tool.</textarea>
+                >This is a test post created from the diagnostic tool.</textarea
+              >
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Status
@@ -82,7 +85,8 @@ if (!user) {
           <div
             id="console-output"
             class="bg-gray-900 text-green-400 p-4 rounded-md font-mono text-sm overflow-auto max-h-96"
-          ></div>
+          >
+          </div>
         </div>
 
         <!-- Run Diagnostics Button -->
@@ -114,7 +118,7 @@ if (!user) {
   <script>
     // Console output logger
     const consoleOutput = document.getElementById('console-output');
-    
+
     function log(message, type = 'info') {
       const colors = {
         info: 'text-green-400',
@@ -122,14 +126,14 @@ if (!user) {
         warn: 'text-yellow-400',
         success: 'text-cyan-400',
       };
-      
+
       const timestamp = new Date().toLocaleTimeString();
       const line = document.createElement('div');
       line.className = colors[type] || colors.info;
       line.textContent = `[${timestamp}] ${message}`;
       consoleOutput.appendChild(line);
       consoleOutput.scrollTop = consoleOutput.scrollHeight;
-      
+
       // Also log to browser console
       console.log(message);
     }
@@ -138,33 +142,40 @@ if (!user) {
     const quickTestForm = document.getElementById('quick-test-form');
     quickTestForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       consoleOutput.innerHTML = '';
       log('=== Starting Post Creation Test ===', 'info');
-      
-      const title = (document.getElementById('test-title') as HTMLInputElement).value;
-      const content = (document.getElementById('test-content') as HTMLTextAreaElement).value;
-      const status = (document.getElementById('test-status') as HTMLSelectElement).value;
-      
+
+      const title = (document.getElementById('test-title') as HTMLInputElement)
+        .value;
+      const content = (
+        document.getElementById('test-content') as HTMLTextAreaElement
+      ).value;
+      const status = (
+        document.getElementById('test-status') as HTMLSelectElement
+      ).value;
+
       const postData = {
         title,
         content,
         status,
       };
-      
+
       log('Test data: ' + JSON.stringify(postData, null, 2), 'info');
-      
+
       try {
-        const csrfToken = (document.querySelector('input[name="csrf_token"]') as HTMLInputElement)?.value;
-        
+        const csrfToken = (
+          document.querySelector('input[name="csrf_token"]') as HTMLInputElement
+        )?.value;
+
         if (!csrfToken) {
           log('ERROR: No CSRF token found!', 'error');
           return;
         }
-        
+
         log('CSRF token: ' + csrfToken.substring(0, 20) + '...', 'info');
         log('Sending POST request to /api/posts...', 'info');
-        
+
         const response = await fetch('/api/posts', {
           method: 'POST',
           headers: {
@@ -174,17 +185,23 @@ if (!user) {
           credentials: 'include',
           body: JSON.stringify(postData),
         });
-        
-        log('Response status: ' + response.status, response.ok ? 'success' : 'error');
-        
+
+        log(
+          'Response status: ' + response.status,
+          response.ok ? 'success' : 'error',
+        );
+
         const result = await response.json();
-        log('Response data: ' + JSON.stringify(result, null, 2), response.ok ? 'success' : 'error');
-        
+        log(
+          'Response data: ' + JSON.stringify(result, null, 2),
+          response.ok ? 'success' : 'error',
+        );
+
         if (response.ok && result.success) {
           log('✓ SUCCESS: Post created!', 'success');
           log('Post ID: ' + result.post?.id, 'success');
           log('Post slug: ' + result.post?.slug, 'success');
-          
+
           // Add link to view/edit
           if (result.post?.id) {
             const editUrl = `/dashboard/edit-post/${result.post.id}`;
@@ -193,11 +210,11 @@ if (!user) {
         } else {
           log('✗ FAILED: Post creation failed', 'error');
           log('Error: ' + (result.error || 'Unknown error'), 'error');
-          
+
           if (result.details) {
             log('Details: ' + result.details, 'error');
           }
-          
+
           if (result.debugInfo) {
             log('Debug info: ' + result.debugInfo, 'error');
           }
@@ -206,7 +223,7 @@ if (!user) {
         log('✗ EXCEPTION: ' + error.message, 'error');
         log('Stack trace: ' + error.stack, 'error');
       }
-      
+
       log('=== Test Complete ===', 'info');
     });
 
@@ -215,7 +232,7 @@ if (!user) {
     runDiagnosticsBtn?.addEventListener('click', async () => {
       consoleOutput.innerHTML = '';
       log('=== Running Full Diagnostic Suite ===', 'info');
-      
+
       // 1. Check authentication
       log('\n1. Checking authentication...', 'info');
       try {
@@ -223,13 +240,13 @@ if (!user) {
           credentials: 'include',
         });
         const session = await authResponse.json();
-        
+
         if (session && session.user) {
           log('✓ User authenticated', 'success');
           log('  Email: ' + session.user.email, 'info');
           log('  Role: ' + session.user.role, 'info');
           log('  ID: ' + session.user.id, 'info');
-          
+
           if (session.user.role !== 'admin' && session.user.role !== 'author') {
             log('⚠ WARNING: User role is not admin or author!', 'warn');
           }
@@ -239,16 +256,21 @@ if (!user) {
       } catch (error: any) {
         log('✗ Auth check failed: ' + error.message, 'error');
       }
-      
+
       // 2. Check CSRF token
       log('\n2. Checking CSRF token...', 'info');
-      const csrfInput = document.querySelector('input[name="csrf_token"]') as HTMLInputElement;
+      const csrfInput = document.querySelector(
+        'input[name="csrf_token"]',
+      ) as HTMLInputElement;
       if (csrfInput && csrfInput.value) {
-        log('✓ CSRF token found: ' + csrfInput.value.substring(0, 20) + '...', 'success');
+        log(
+          '✓ CSRF token found: ' + csrfInput.value.substring(0, 20) + '...',
+          'success',
+        );
       } else {
         log('✗ CSRF token not found!', 'error');
       }
-      
+
       // 3. Check PocketBase connection
       log('\n3. Checking PocketBase connection...', 'info');
       try {
@@ -260,12 +282,15 @@ if (!user) {
           log('✓ PocketBase connection OK', 'success');
           log('  Health data: ' + JSON.stringify(health), 'info');
         } else {
-          log('✗ PocketBase health check failed: ' + healthResponse.status, 'error');
+          log(
+            '✗ PocketBase health check failed: ' + healthResponse.status,
+            'error',
+          );
         }
       } catch (error: any) {
         log('✗ PocketBase connection error: ' + error.message, 'error');
       }
-      
+
       // 4. Test minimal post creation
       log('\n4. Testing minimal post creation...', 'info');
       try {
@@ -274,9 +299,9 @@ if (!user) {
           content: '<p>Minimal test post</p>',
           status: 'draft',
         };
-        
+
         log('Creating post: ' + JSON.stringify(minimalPost, null, 2), 'info');
-        
+
         const response = await fetch('/api/posts', {
           method: 'POST',
           headers: {
@@ -286,9 +311,9 @@ if (!user) {
           credentials: 'include',
           body: JSON.stringify(minimalPost),
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok && result.success) {
           log('✓ Minimal post creation successful!', 'success');
           log('  Post ID: ' + result.post?.id, 'success');
@@ -303,14 +328,24 @@ if (!user) {
       } catch (error: any) {
         log('✗ Test failed: ' + error.message, 'error');
       }
-      
+
       log('\n=== Diagnostic Suite Complete ===', 'info');
-      log('\nPlease copy this output and include it in your bug report.', 'warn');
+      log(
+        '\nPlease copy this output and include it in your bug report.',
+        'warn',
+      );
     });
-    
-    log('Diagnostic tool ready. Fill out the form and click "Test Create Post".', 'success');
+
+    log(
+      'Diagnostic tool ready. Fill out the form and click "Test Create Post".',
+      'success',
+    );
   </script>
 
   <!-- Hidden CSRF token -->
-  <input type="hidden" name="csrf_token" value={Astro.cookies.get('csrf_token')?.value || ''} />
+  <input
+    type="hidden"
+    name="csrf_token"
+    value={Astro.cookies.get('csrf_token')?.value || ''}
+  />
 </Layout>
